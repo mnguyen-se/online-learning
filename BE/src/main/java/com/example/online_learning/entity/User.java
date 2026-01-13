@@ -42,6 +42,9 @@ public class User {
     @Column(nullable = false)
     private UserRole role;
 
+    @Column(nullable = false)
+    private Boolean active = true;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 }

@@ -53,6 +53,9 @@ public class UserServiceImpl implements UserService {
         if (request.getRole() != null) {
             user.setRole(request.getRole());
         }
+        if (request.getActive() != null) {
+            user.setActive(request.getActive());
+        }
         
         User updatedUser = userRepository.save(user);
         return userMapper.toDtoReq(updatedUser);
@@ -62,6 +65,8 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
-        userRepository.delete(user);
+        // Soft delete: chuyển active sang false thay vì xóa
+        user.setActive(false);
+        userRepository.save(user);
     }
 }

@@ -18,4 +18,5 @@ public class UserDtoRes {
     private String address;
     private LocalDate dateOfBirth;
     private UserRole role;
+    private Boolean active;
 }

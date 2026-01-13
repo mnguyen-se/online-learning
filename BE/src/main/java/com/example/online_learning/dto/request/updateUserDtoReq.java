@@ -15,4 +15,5 @@ public class updateUserDtoReq {
     private String address;
     private LocalDate dateOfBirth;
     private UserRole role;
+    private Boolean active;
 }
