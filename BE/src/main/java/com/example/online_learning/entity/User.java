@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -31,6 +32,11 @@ public class User {
 
     @Column(name = "user_name",nullable = false, unique = true, length = 100)
     private String userName;
+
+    @Column(length = 255)
+    private String address;
+
+    private LocalDate dateOfBirth;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

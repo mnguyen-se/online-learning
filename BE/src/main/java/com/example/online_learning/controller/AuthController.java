@@ -59,6 +59,8 @@ public class AuthController {
         user.setRole(UserRole.STUDENT);
         user.setEmail(request.getEmail());
         user.setName(request.getName());
+        user.setAddress(request.getAddress());
+        user.setDateOfBirth(request.getDateOfBirth());
         userRepository.save(user);
         return "Register success";
     }
