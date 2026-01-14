@@ -18,7 +18,7 @@ public class Lesson {
     private Long lessonId;
 
     @ManyToOne
-    @JoinColumn(name = "section_id", nullable = false)
+    @JoinColumn(name = "section_id")
     private CourseSection section;
 
     @Column(nullable = false)
@@ -35,5 +35,7 @@ public class Lesson {
 
     @Column(nullable = false)
     private Integer orderIndex;
+
+    private boolean isDeleted;
 }
 

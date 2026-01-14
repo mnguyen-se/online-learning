@@ -2,6 +2,8 @@ package com.example.online_learning.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "course_section")
 @Getter
@@ -24,5 +26,8 @@ public class CourseSection {
 
     @Column(nullable = false)
     private Integer orderIndex;
+
+    private boolean isDeleted;
+
 }
 

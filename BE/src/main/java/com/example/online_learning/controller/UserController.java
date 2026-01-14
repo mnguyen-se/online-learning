@@ -2,7 +2,6 @@ package com.example.online_learning.controller;
 
 import com.example.online_learning.dto.response.UserDtoRes;
 import com.example.online_learning.service.UserService;
-import com.example.online_learning.servivceImpl.UserServiceImpl;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

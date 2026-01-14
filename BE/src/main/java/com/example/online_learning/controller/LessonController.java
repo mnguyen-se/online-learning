@@ -1,0 +1,47 @@
+package com.example.online_learning.controller;
+
+import com.example.online_learning.dto.request.lessonDtoReq;
+import com.example.online_learning.service.LessonService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/lessons")
+public class LessonController {
+    private final LessonService lessonService;
+    public LessonController(LessonService lessonService) {
+        this.lessonService = lessonService;
+    }
+
+    @GetMapping("/")
+    public Object getAllLessons(){
+        return lessonService.getAllLessons();
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<?> createLesson(@RequestBody lessonDtoReq dto){
+        return ResponseEntity.ok().body(lessonService.createLesson(dto));
+    }
+
+    @PutMapping("/update/{lessonId}")
+    public ResponseEntity<?> updateLesson(@PathVariable Long lessonId, @RequestBody lessonDtoReq dto){
+        lessonService.updateLesson(lessonId, dto);
+        return ResponseEntity.ok("Lesson updated");
+    }
+
+    @DeleteMapping("/delete/{lessonId}")
+    public ResponseEntity<?> deleteLesson(@PathVariable Long lessonId){
+        lessonService.deleteLesson(lessonId);
+        return ResponseEntity.ok().body("delete lesson");
+    }
+
+    @GetMapping("/view")
+    public ResponseEntity<?> getAllLessonsIsNotDeleted(){
+        return ResponseEntity.ok().body(lessonService.findLessonByDeletedFalse());
+    }
+
+    @GetMapping("/section/{sectionId}")
+    public ResponseEntity<?> getAllLessonsBySectionId(@PathVariable Long sectionId){
+        return ResponseEntity.ok().body(lessonService.findLessonsBySectionId(sectionId));
+    }
+}

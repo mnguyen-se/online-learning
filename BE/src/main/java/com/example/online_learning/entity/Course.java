@@ -31,5 +31,7 @@ public class Course {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    private boolean isDeleted;
 }
 
