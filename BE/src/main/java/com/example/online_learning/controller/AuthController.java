@@ -38,6 +38,13 @@ public class AuthController {
 
     @PostMapping("/login")
     public loginDtoRes login(@RequestBody loginDtoReq request) {
+        // Kiểm tra user có active không trước khi authenticate
+        User user = userRepository.findByUserName(request.getUsername())
+                .orElseThrow(() -> new org.springframework.security.authentication.BadCredentialsException("Invalid username or password"));
+        
+        if (user.getActive() == null || !user.getActive()) {
+            throw new org.springframework.security.authentication.DisabledException("User account is inactive");
+        }
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -59,6 +66,9 @@ public class AuthController {
         user.setRole(UserRole.STUDENT);
         user.setEmail(request.getEmail());
         user.setName(request.getName());
+        user.setAddress(request.getAddress());
+        user.setDateOfBirth(request.getDateOfBirth());
+        user.setActive(true);
         userRepository.save(user);
         return "Register success";
     }
