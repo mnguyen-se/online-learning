@@ -1,5 +1,6 @@
 package com.example.online_learning.controller;
 
+import com.example.online_learning.dto.request.createUserDtoReq;
 import com.example.online_learning.dto.request.updateUserDtoReq;
 import com.example.online_learning.dto.response.UserDtoRes;
 import com.example.online_learning.service.UserService;
@@ -30,6 +31,11 @@ public class UserController {
         return userService.getAll();
     }
 
+    @PostMapping("/create")
+    public UserDtoRes createUser(@jakarta.validation.Valid @RequestBody createUserDtoReq request) {
+        return userService.createUser(request);
+    }
+
     @PutMapping("/{userId}")
     public UserDtoRes updateUser(@PathVariable Long userId, @RequestBody updateUserDtoReq request) {
         return userService.updateUser(userId, request);
@@ -40,5 +46,6 @@ public class UserController {
         userService.deleteUser(userId);
         return "User deleted successfully";
     }
+
 
 }

@@ -1,13 +1,16 @@
 package com.example.online_learning.servivceImpl;
 
+import com.example.online_learning.dto.request.createUserDtoReq;
 import com.example.online_learning.dto.response.UserDtoRes;
 import com.example.online_learning.entity.User;
 import com.example.online_learning.exception.NotFoundException;
 import com.example.online_learning.mapper.UserMapper;
 import com.example.online_learning.repository.UserRepository;
 import com.example.online_learning.service.UserService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,10 +18,12 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -34,6 +39,33 @@ public class UserServiceImpl implements UserService {
                 .stream()
                 .map(userMapper::toDtoReq)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public UserDtoRes createUser(createUserDtoReq request) {
+        // Kiểm tra username đã tồn tại chưa
+        if (userRepository.findByUserName(request.getUsername()).isPresent()) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+        
+        // Kiểm tra email đã tồn tại chưa
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+        
+        User user = new User();
+        user.setUserName(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setName(request.getName());
+        user.setAddress(request.getAddress());
+        user.setDateOfBirth(request.getDateOfBirth());
+        user.setRole(request.getRole() != null ? request.getRole() : com.example.online_learning.constants.UserRole.STUDENT);
+        user.setActive(true);
+        user.setCreatedAt(LocalDateTime.now());
+        
+        User savedUser = userRepository.save(user);
+        return userMapper.toDtoReq(savedUser);
     }
 
     @Override
