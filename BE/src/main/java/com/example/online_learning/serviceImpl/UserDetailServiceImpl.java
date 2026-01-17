@@ -1,9 +1,8 @@
-package com.example.online_learning.servivceImpl;
+package com.example.online_learning.serviceImpl;
 
 import com.example.online_learning.entity.User;
 import com.example.online_learning.repository.UserRepository;
 import com.example.online_learning.security.CustomUserDetail;
-import com.example.online_learning.service.UserDetailService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

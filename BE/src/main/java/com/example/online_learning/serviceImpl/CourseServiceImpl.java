@@ -1,4 +1,4 @@
-package com.example.online_learning.servivceImpl;
+package com.example.online_learning.serviceImpl;
 
 import com.example.online_learning.dto.request.CourseDtoReq;
 import com.example.online_learning.dto.response.CourseDtoRes;

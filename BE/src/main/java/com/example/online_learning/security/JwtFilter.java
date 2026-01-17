@@ -1,6 +1,6 @@
 package com.example.online_learning.security;
 
-import com.example.online_learning.servivceImpl.UserDetailServiceImpl;
+import com.example.online_learning.serviceImpl.UserDetailServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

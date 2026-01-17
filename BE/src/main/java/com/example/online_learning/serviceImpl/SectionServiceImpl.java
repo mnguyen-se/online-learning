@@ -1,4 +1,4 @@
-package com.example.online_learning.servivceImpl;
+package com.example.online_learning.serviceImpl;
 
 import com.example.online_learning.dto.request.SectionDtoReq;
 import com.example.online_learning.entity.CourseSection;

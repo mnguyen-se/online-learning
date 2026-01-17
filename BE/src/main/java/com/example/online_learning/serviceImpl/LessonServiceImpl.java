@@ -1,8 +1,7 @@
-package com.example.online_learning.servivceImpl;
+package com.example.online_learning.serviceImpl;
 
 import com.example.online_learning.dto.request.lessonDtoReq;
 import com.example.online_learning.dto.response.lessonDtoRes;
-import com.example.online_learning.entity.CourseSection;
 import com.example.online_learning.entity.Lesson;
 import com.example.online_learning.exception.NotFoundException;
 import com.example.online_learning.mapper.LessonMapper;

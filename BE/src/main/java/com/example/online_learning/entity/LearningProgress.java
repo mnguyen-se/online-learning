@@ -28,13 +28,17 @@ public class LearningProgress {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "lesson_id", nullable = false)
-    private Lesson lesson;
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
+
+    @Column(name = "total_tasks", nullable = false)
+    private int totalTasks;
+
+    @Column(name = "completed_tasks", nullable = false)
+    private int completedTasks;
 
     @Enumerated(EnumType.STRING)
     private ProgressStatus status;
-
-    private Integer progressPercent;
 
     @UpdateTimestamp
     private LocalDateTime lastUpdated;

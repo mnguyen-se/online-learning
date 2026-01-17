@@ -18,8 +18,8 @@ public class Assignment {
     private Long assignmentId;
 
     @ManyToOne
-    @JoinColumn(name = "lesson_id", nullable = false)
-    private Lesson lesson;
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
 
     @Column(nullable = false)
     private String title;
@@ -30,5 +30,7 @@ public class Assignment {
     private Integer maxScore;
 
     private LocalDateTime dueDate;
+
+    private Integer orderIndex;
 }
 
