@@ -11,6 +11,5 @@ public interface LessonService {
     public void deleteLesson(Long lessonId);
     public void updateLesson(Long lessonId, lessonDtoReq dto);
     public List<lessonDtoRes> getAllLessons();
-    public List<lessonDtoRes> findLessonsBySectionId(Long sectionId);
     public List<lessonDtoRes> findLessonByDeletedFalse();
 }

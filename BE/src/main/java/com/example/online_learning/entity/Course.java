@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "course")
@@ -21,6 +22,9 @@ public class Course {
 
     @Column(nullable = false)
     private String title;
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private List<Lesson> lessons;
 
     @Column(columnDefinition = "TEXT")
     private String description;

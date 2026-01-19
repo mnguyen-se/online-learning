@@ -18,8 +18,8 @@ public class Lesson {
     private Long lessonId;
 
     @ManyToOne
-    @JoinColumn(name = "section_id")
-    private CourseSection section;
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
 
     @Column(nullable = false)
     private String title;

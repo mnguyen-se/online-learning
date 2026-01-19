@@ -40,8 +40,4 @@ public class LessonController {
         return ResponseEntity.ok().body(lessonService.findLessonByDeletedFalse());
     }
 
-    @GetMapping("/section/{sectionId}")
-    public ResponseEntity<?> getAllLessonsBySectionId(@PathVariable Long sectionId){
-        return ResponseEntity.ok().body(lessonService.findLessonsBySectionId(sectionId));
-    }
 }

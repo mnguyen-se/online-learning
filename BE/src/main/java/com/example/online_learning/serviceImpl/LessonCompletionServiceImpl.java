@@ -49,8 +49,7 @@ public class LessonCompletionServiceImpl
 
         // 🔥 CỘNG PROGRESS
         learningProcessService.increaseProgress(
-                lesson.getSection()
-                        .getModule()
+                lesson
                         .getCourse()
                         .getCourseId(),
                 userId

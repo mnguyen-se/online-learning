@@ -10,12 +10,11 @@ import java.util.List;
 @Repository
 public interface LessonRepository extends JpaRepository<Lesson, Long> {
     Lesson findByLessonId(Long lessonId);
-    List<Lesson> findBySection_SectionId(Long sectionId);
     List<Lesson> findAllByDeletedFalse();
     @Query("""
     SELECT COUNT(l)
     FROM Lesson l
-    WHERE l.section.module.course.courseId = :courseId
+    WHERE l.course.courseId = :courseId
       AND l.isDeleted = false
 """)
     long countLessonsByCourseId(@Param("courseId") Long courseId);
@@ -23,7 +22,7 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
     @Query("""
     SELECT l.title
     FROM Lesson l
-    WHERE l.section.module.course.courseId = :courseId
+    WHERE l.course.courseId = :courseId
       AND l.isDeleted = false
       AND l.lessonId NOT IN (
           SELECT lc.lesson.lessonId

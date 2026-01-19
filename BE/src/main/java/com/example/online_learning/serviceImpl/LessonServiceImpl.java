@@ -6,7 +6,6 @@ import com.example.online_learning.entity.Lesson;
 import com.example.online_learning.exception.NotFoundException;
 import com.example.online_learning.mapper.LessonMapper;
 import com.example.online_learning.repository.LessonRepository;
-import com.example.online_learning.repository.SectionRepository;
 import com.example.online_learning.service.LessonService;
 import org.springframework.stereotype.Service;
 
@@ -15,11 +14,9 @@ import java.util.List;
 public class LessonServiceImpl implements LessonService {
     private final LessonRepository lessonRepository;
     private final LessonMapper lessonMapper;
-    private final SectionRepository sectionRepository;
-    public LessonServiceImpl(LessonRepository lessonRepository, LessonMapper lessonMapper, SectionRepository sectionRepository) {
+    public LessonServiceImpl(LessonRepository lessonRepository, LessonMapper lessonMapper) {
         this.lessonRepository = lessonRepository;
         this.lessonMapper = lessonMapper;
-        this.sectionRepository = sectionRepository;
     }
     @Override
     public Lesson createLesson(lessonDtoReq dto) {
@@ -41,7 +38,6 @@ public class LessonServiceImpl implements LessonService {
         lesson.setTitle(dto.getTitle());
         lesson.setOrderIndex(dto.getOrderIndex());
         lesson.setContentUrl(dto.getContentUrl());
-        lesson.setSection(lesson.getSection());
 
         lessonRepository.save(lesson);
     }
@@ -49,12 +45,6 @@ public class LessonServiceImpl implements LessonService {
     @Override
     public List<lessonDtoRes> getAllLessons() {
         List<Lesson> lessons = lessonRepository.findAllByDeletedFalse();
-        return lessonMapper.toDto(lessons);
-    }
-
-    @Override
-    public List<lessonDtoRes> findLessonsBySectionId(Long sectionId) {
-        List<Lesson> lessons = lessonRepository.findBySection_SectionId(sectionId);
         return lessonMapper.toDto(lessons);
     }
 
