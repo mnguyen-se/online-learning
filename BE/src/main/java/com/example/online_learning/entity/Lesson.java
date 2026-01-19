@@ -38,4 +38,3 @@ public class Lesson {
 
     private boolean isDeleted;
 }
-
