@@ -1,0 +1,27 @@
+[33m687c47c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev-be[m[33m, [m[1;31morigin/dev-be[m[33m)[m BE - [MERGE] merge dev-be4 to dev-be
+[33m4f9075d[m BE- [ADD] fix lesson
+[33m0b59822[m BE - [ADD] add function AI feedback,AI hint and AI make a practice quiz, learning process
+[33m7129806[m[33m ([m[1;31morigin/dev-be4[m[33m)[m Fix api
+[33m2f846fd[m Add question for assignment
+[33m4d88d94[m[33m ([m[1;31morigin/dev-be2[m[33m)[m create user
+[33m73376ab[m BE - [UPDATE] fix bug
+[33m0c9afd3[m Merge branch backend2
+[33m33765ac[m BE - [ADD] create new branch, add full feature for lesson,section and module and course
+[33m7f7e33b[m[33m ([m[1;31morigin/backend2[m[33m)[m fix CRUD
+[33m87fee7f[m CRUD user
+[33m4a5fd64[m[33m ([m[1;31morigin/backend[m[33m, [m[1;32mbackend[m[33m)[m BE - [ADD] add function login,register and get info user
+[33md1abc10[m BE - [UPDATE] remove ide files
+[33mdc0e727[m BE - [ADD] add new project structure
+[33m6d42b44[m first commit
+[33m1c85208[m first commit
+[33m6d446dc[m[33m ([m[1;32mmain[m[33m)[m Merge branch 'main' of https://github.com/Aavengers4/SWD391--Group4-
+[33m4c89bde[m Restructure: move backend source into BE folder
+[33m4ccbfa7[m Fix formatting in README.md
+[33m49fcc08[m Revise directory structure in README.md
+[33m4e188a8[m Format project structure section in README
+[33m92e0f32[m Revise notes section to project structure
+[33m234ec3b[m Update Java version and improve README
+[33mffd720d[m edit readme
+[33mfe40736[m add Readme
+[33m8489fcf[m first commit
+[33m11f1900[m[33m ([m[1;31morigin/main[m[33m)[m Initial commit
