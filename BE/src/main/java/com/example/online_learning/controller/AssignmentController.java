@@ -5,6 +5,7 @@ import com.example.online_learning.service.AssignmentService;
 import com.example.online_learning.service.AssignmentSubmissionService;
 import com.example.online_learning.service.FeedbackService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,6 +19,7 @@ public class AssignmentController {
         this.submissionService = submissionService;
         this.feedbackService = feedbackService;
     }
+    @PreAuthorize("hasAnyRole('COURSE_MANAGER','ADMIN')")
     @PostMapping("/courses/{courseId}/assignments")
     public ResponseEntity<?> createAssignment(
             @RequestBody AssignmentDtoReq request

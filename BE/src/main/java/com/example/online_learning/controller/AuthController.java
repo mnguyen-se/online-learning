@@ -6,9 +6,13 @@ import com.example.online_learning.dto.request.registerDtoReq;
 import com.example.online_learning.dto.response.loginDtoRes;
 import com.example.online_learning.entity.User;
 import com.example.online_learning.repository.UserRepository;
+import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.security.JwtUtil;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,24 +42,33 @@ public class AuthController {
 
     @PostMapping("/login")
     public loginDtoRes login(@RequestBody loginDtoReq request) {
-        // Kiểm tra user có active không trước khi authenticate
+
         User user = userRepository.findByUserName(request.getUsername())
-                .orElseThrow(() -> new org.springframework.security.authentication.BadCredentialsException("Invalid username or password"));
-        
+                .orElseThrow(() ->
+                        new BadCredentialsException("Invalid username or password"));
+
         if (user.getActive() == null || !user.getActive()) {
-            throw new org.springframework.security.authentication.DisabledException("User account is inactive");
+            throw new DisabledException("User account is inactive");
         }
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+        Authentication authentication =
+                authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                request.getUsername(),
+                                request.getPassword()
+                        )
+                );
 
-        String token = jwtUtil.generateToken(request.getUsername());
+        // 🔑 LẤY USERDETAILS SAU AUTHENTICATE
+        CustomUserDetail userDetails =
+                (CustomUserDetail) authentication.getPrincipal();
+
+        // 🔑 TẠO TOKEN TỪ USERDETAILS (CÓ ROLE)
+        String token = jwtUtil.generateToken(userDetails);
+
         return new loginDtoRes(token);
     }
+
 
     @PostMapping("/register")
     public String register(@RequestBody registerDtoReq request) {

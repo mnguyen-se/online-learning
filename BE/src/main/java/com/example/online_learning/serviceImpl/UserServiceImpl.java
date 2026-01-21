@@ -60,7 +60,7 @@ public class UserServiceImpl implements UserService {
         user.setName(request.getName());
         user.setAddress(request.getAddress());
         user.setDateOfBirth(request.getDateOfBirth());
-        user.setRole(request.getRole() != null ? request.getRole() : com.example.online_learning.constants.UserRole.STUDENT);
+        user.setRole(request.getRole());
         user.setActive(true);
         user.setCreatedAt(LocalDateTime.now());
         

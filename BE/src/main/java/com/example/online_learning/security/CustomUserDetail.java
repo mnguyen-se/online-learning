@@ -1,13 +1,13 @@
 package com.example.online_learning.security;
 
 import com.example.online_learning.entity.User;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
-
 public class CustomUserDetail implements UserDetails {
 
     private final User user;

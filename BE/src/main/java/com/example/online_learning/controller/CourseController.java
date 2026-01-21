@@ -6,6 +6,7 @@ import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.CourseService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +23,7 @@ public class CourseController {
     }
 
     // ✅ Create course
+    @PreAuthorize("hasAnyRole('COURSE_MANAGER','ADMIN')")
     @PostMapping
     public ResponseEntity<Void> createCourse(@RequestBody CourseDtoReq dto,
                                              @AuthenticationPrincipal CustomUserDetail userDetail) {
@@ -30,6 +32,7 @@ public class CourseController {
     }
 
     // ✅ Update course
+    @PreAuthorize("hasAnyRole('COURSE_MANAGER','ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateCourse(
             @PathVariable("id") Long courseId,
@@ -40,6 +43,7 @@ public class CourseController {
     }
 
     // ✅ Soft delete course
+    @PreAuthorize("hasAnyRole('COURSE_MANAGER','ADMIN')")
     @PostMapping("/delete/{id}")
     public ResponseEntity<Void> deleteCourse(@PathVariable("id") Long courseId) {
         courseService.deleteCourse(courseId);
@@ -47,6 +51,7 @@ public class CourseController {
     }
 
     // ✅ Get all courses (kể cả deleted)
+    @PreAuthorize("hasAnyRole('COURSE_MANAGER','ADMIN')")
     @GetMapping
     public ResponseEntity<List<CourseDtoRes>> getAllCourses() {
         return ResponseEntity.ok(courseService.getAllCourses());
