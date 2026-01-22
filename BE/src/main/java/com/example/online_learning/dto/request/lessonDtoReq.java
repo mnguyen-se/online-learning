@@ -27,5 +27,4 @@ public class lessonDtoReq {
     @Column(nullable = false)
     private Integer orderIndex;
 
-    private Long sectionId;
 }

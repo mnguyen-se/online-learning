@@ -15,7 +15,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/users")
-@PreAuthorize("hasRole('ADMIN')")
 public class UserController {
     private final UserService userService;
     public UserController(UserService userService) {
@@ -42,6 +41,7 @@ public class UserController {
         return userService.updateUser(userId, request);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{userId}")
     public String deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);

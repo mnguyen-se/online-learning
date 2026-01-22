@@ -8,6 +8,8 @@ import com.example.online_learning.entity.User;
 import com.example.online_learning.repository.UserRepository;
 import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.security.JwtUtil;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -41,34 +44,52 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public loginDtoRes login(@RequestBody loginDtoReq request) {
+    public ResponseEntity<?> login(@RequestBody loginDtoReq request) {
+        try {
+            // 🔹 Check if user exists
+            User user = userRepository.findByUserName(request.getUsername())
+                    .orElseThrow(() ->
+                            new BadCredentialsException("Invalid username or password"));
 
-        User user = userRepository.findByUserName(request.getUsername())
-                .orElseThrow(() ->
-                        new BadCredentialsException("Invalid username or password"));
+            // 🔹 Check if account is active
+            if (user.getActive() == null || !user.getActive()) {
+                throw new DisabledException("User account is inactive");
+            }
 
-        if (user.getActive() == null || !user.getActive()) {
-            throw new DisabledException("User account is inactive");
+            // 🔹 Authenticate user password
+            Authentication authentication =
+                    authenticationManager.authenticate(
+                            new UsernamePasswordAuthenticationToken(
+                                    request.getUsername(),
+                                    request.getPassword()
+                            )
+                    );
+
+            // 🔹 Get user details
+            CustomUserDetail userDetails =
+                    (CustomUserDetail) authentication.getPrincipal();
+
+            // 🔹 Generate JWT token
+            String token = jwtUtil.generateToken(userDetails);
+
+            return ResponseEntity.ok(new loginDtoRes(token));
+
+        } catch (BadCredentialsException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid username or password"));
+
+        } catch (DisabledException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "User account is inactive"));
+
+        } catch (Exception ex) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "An error occurred: " + ex.getMessage()));
         }
-
-        Authentication authentication =
-                authenticationManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(
-                                request.getUsername(),
-                                request.getPassword()
-                        )
-                );
-
-        // 🔑 LẤY USERDETAILS SAU AUTHENTICATE
-        CustomUserDetail userDetails =
-                (CustomUserDetail) authentication.getPrincipal();
-
-        // 🔑 TẠO TOKEN TỪ USERDETAILS (CÓ ROLE)
-        String token = jwtUtil.generateToken(userDetails);
-
-        return new loginDtoRes(token);
     }
-
 
     @PostMapping("/register")
     public String register(@RequestBody registerDtoReq request) {
