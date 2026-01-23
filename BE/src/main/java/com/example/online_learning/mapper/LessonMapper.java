@@ -1,6 +1,6 @@
 package com.example.online_learning.mapper;
 
-import com.example.online_learning.dto.request.lessonDtoReq;
+import com.example.online_learning.dto.request.LessonDtoReq;
 import com.example.online_learning.dto.response.LessonDtoRes;
 import com.example.online_learning.entity.Lesson;
 import com.example.online_learning.entity.Module;
@@ -18,7 +18,7 @@ public class LessonMapper {
         this.moduleRepository = moduleRepository;
     }
 
-    public Lesson toEntity(lessonDtoReq lesson){
+    public Lesson toEntity(LessonDtoReq lesson){
         Lesson lessonEntity = new Lesson();
         lessonEntity.setLessonType(lesson.getLessonType());
         lessonEntity.setTitle(lesson.getTitle());

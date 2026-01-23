@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class lessonDtoReq {
+public class LessonDtoReq {
     @Column(nullable = false)
     private String title;
 

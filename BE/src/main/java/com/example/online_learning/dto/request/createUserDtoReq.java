@@ -4,7 +4,6 @@ import com.example.online_learning.constants.UserRole;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,7 +14,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class createUserDtoReq {
+public class CreateUserDtoReq {
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 100, message = "Username must be between 3 and 100 characters")
     private String username;

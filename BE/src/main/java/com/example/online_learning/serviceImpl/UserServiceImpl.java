@@ -1,6 +1,7 @@
 package com.example.online_learning.serviceImpl;
 
-import com.example.online_learning.dto.request.createUserDtoReq;
+import com.example.online_learning.dto.request.CreateUserDtoReq;
+import com.example.online_learning.dto.request.UpdateUserDtoReq;
 import com.example.online_learning.dto.response.UserDtoRes;
 import com.example.online_learning.entity.User;
 import com.example.online_learning.exception.NotFoundException;
@@ -42,7 +43,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDtoRes createUser(createUserDtoReq request) {
+    public UserDtoRes createUser(CreateUserDtoReq request) {
         // Kiểm tra username đã tồn tại chưa
         if (userRepository.findByUserName(request.getUsername()).isPresent()) {
             throw new IllegalArgumentException("Username already exists");
@@ -69,7 +70,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDtoRes updateUser(Long userId, com.example.online_learning.dto.request.updateUserDtoReq request) {
+    public UserDtoRes updateUser(Long userId, UpdateUserDtoReq request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
         

@@ -1,7 +1,7 @@
 package com.example.online_learning.controller;
 
-import com.example.online_learning.dto.request.createUserDtoReq;
-import com.example.online_learning.dto.request.updateUserDtoReq;
+import com.example.online_learning.dto.request.CreateUserDtoReq;
+import com.example.online_learning.dto.request.UpdateUserDtoReq;
 import com.example.online_learning.dto.response.UserDtoRes;
 import com.example.online_learning.service.UserService;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,12 +32,12 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    public UserDtoRes createUser(@jakarta.validation.Valid @RequestBody createUserDtoReq request) {
+    public UserDtoRes createUser(@jakarta.validation.Valid @RequestBody CreateUserDtoReq request) {
         return userService.createUser(request);
     }
 
     @PutMapping("/{userId}")
-    public UserDtoRes updateUser(@PathVariable Long userId, @RequestBody updateUserDtoReq request) {
+    public UserDtoRes updateUser(@PathVariable Long userId, @RequestBody UpdateUserDtoReq request) {
         return userService.updateUser(userId, request);
     }
 

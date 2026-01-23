@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class updateUserDtoReq {
+public class UpdateUserDtoReq {
     private String name;
     private String address;
     private LocalDate dateOfBirth;

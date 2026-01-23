@@ -1,6 +1,6 @@
 package com.example.online_learning.serviceImpl;
 
-import com.example.online_learning.dto.request.lessonDtoReq;
+import com.example.online_learning.dto.request.LessonDtoReq;
 import com.example.online_learning.dto.response.LessonDtoRes;
 import com.example.online_learning.entity.Lesson;
 import com.example.online_learning.exception.NotFoundException;
@@ -19,7 +19,7 @@ public class LessonServiceImpl implements LessonService {
         this.lessonMapper = lessonMapper;
     }
     @Override
-    public LessonDtoRes createLesson(lessonDtoReq dto) {
+    public LessonDtoRes createLesson(LessonDtoReq dto) {
         Lesson l = lessonRepository.save(lessonMapper.toEntity(dto));
         return lessonMapper.toDto(l);
     }
@@ -32,7 +32,7 @@ public class LessonServiceImpl implements LessonService {
     }
 
     @Override
-    public void updateLesson(Long lessonId, lessonDtoReq dto) {
+    public void updateLesson(Long lessonId, LessonDtoReq dto) {
         Lesson lesson = lessonRepository.findByLessonId(lessonId);
         lesson.setLessonType(dto.getLessonType());
         lesson.setTitle(dto.getTitle());

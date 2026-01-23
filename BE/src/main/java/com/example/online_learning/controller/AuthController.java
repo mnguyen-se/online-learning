@@ -1,9 +1,9 @@
 package com.example.online_learning.controller;
 
 import com.example.online_learning.constants.UserRole;
-import com.example.online_learning.dto.request.loginDtoReq;
-import com.example.online_learning.dto.request.registerDtoReq;
-import com.example.online_learning.dto.response.loginDtoRes;
+import com.example.online_learning.dto.request.LoginDtoReq;
+import com.example.online_learning.dto.request.RegisterDtoReq;
+import com.example.online_learning.dto.response.LoginDtoRes;
 import com.example.online_learning.entity.User;
 import com.example.online_learning.repository.UserRepository;
 import com.example.online_learning.security.CustomUserDetail;
@@ -44,7 +44,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody loginDtoReq request) {
+    public ResponseEntity<?> login(@RequestBody LoginDtoReq request) {
         try {
             // 🔹 Check if user exists
             User user = userRepository.findByUserName(request.getUsername())
@@ -72,7 +72,7 @@ public class AuthController {
             // 🔹 Generate JWT token
             String token = jwtUtil.generateToken(userDetails);
 
-            return ResponseEntity.ok(new loginDtoRes(token));
+            return ResponseEntity.ok(new LoginDtoRes(token));
 
         } catch (BadCredentialsException ex) {
             return ResponseEntity
@@ -92,7 +92,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String register(@RequestBody registerDtoReq request) {
+    public String register(@RequestBody RegisterDtoReq request) {
         User user = new User();
         user.setUserName(request.getUsername());
         user.setCreatedAt(LocalDateTime.now());
