@@ -37,9 +37,10 @@ public class CourseController {
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateCourse(
             @PathVariable("id") Long courseId,
-            @RequestBody CourseDtoReq dto
+            @RequestBody CourseDtoReq dto,
+            @AuthenticationPrincipal CustomUserDetail userDetail
     ) {
-        courseService.updateCourse(courseId, dto);
+        courseService.updateCourse(courseId, dto, userDetail);
         return ResponseEntity.ok().build();
     }
 
@@ -54,7 +55,7 @@ public class CourseController {
     // ✅ Get all courses (kể cả deleted)
     @PreAuthorize("hasAnyRole('COURSE_MANAGER','ADMIN')")
     @GetMapping
-    public ResponseEntity<List<Course>> getAllCourses() {
+    public ResponseEntity<?> getAllCourses() {
         return ResponseEntity.ok(courseService.getAllCourses());
     }
 

@@ -16,7 +16,7 @@ public class AssignmentDtoReq {
     private String title;
     private String description;
     private Integer maxScore;
-    private LocalDateTime dueDate;
+    private Integer dueDate;
     private Integer orderIndex;
 }
 

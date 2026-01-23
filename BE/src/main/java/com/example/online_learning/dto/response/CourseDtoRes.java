@@ -15,6 +15,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CourseDtoRes {
+
+    private Long courseId;
     @Column(nullable = false)
     private String title;
 
@@ -26,4 +28,6 @@ public class CourseDtoRes {
     private LocalDateTime createdAt;
 
     private boolean isPublic;
+
+    private List<ModuleDtoRes> modules;
 }

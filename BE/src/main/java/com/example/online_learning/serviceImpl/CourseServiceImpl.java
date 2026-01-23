@@ -3,12 +3,14 @@ package com.example.online_learning.serviceImpl;
 import com.example.online_learning.dto.request.CourseDtoReq;
 import com.example.online_learning.dto.response.CourseDtoRes;
 import com.example.online_learning.entity.Course;
+import com.example.online_learning.exception.NotFoundException;
 import com.example.online_learning.mapper.CourseMapper;
 import com.example.online_learning.repository.CourseRepository;
 import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.CourseService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -29,19 +31,37 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public void deleteCourse(Long courseId) {
         Course course = courseRepository.findByCourseId(courseId);
-        course.setIsPublic(true);
+        course.setIsPublic(false);
         courseRepository.save(course);
     }
 
     @Override
-    public void updateCourse(Long courseId, CourseDtoReq dto) {
+    public void updateCourse(Long courseId, CourseDtoReq dto, CustomUserDetail userDetail) {
         Course course = courseRepository.findByCourseId(courseId);
-        courseRepository.save(courseMapper.toEntity(dto));
+        if (course == null) {
+            throw new NotFoundException("Course not found");
+        }
+
+        // update từng field, bỏ qua field null
+        if (dto.getTitle() != null) {
+            course.setTitle(dto.getTitle());
+        }
+
+        if (dto.getDescription() != null) {
+            course.setDescription(dto.getDescription());
+        }
+
+        // audit
+        course.setCreatedBy(userDetail.getUser());
+        course.setCreatedAt(LocalDateTime.now());
+
+        courseRepository.save(course);
     }
 
+
     @Override
-    public List<Course> getAllCourses() {
-        return courseRepository.findAll();
+    public List<CourseDtoRes> getAllCourses() {
+        return courseMapper.toDto(courseRepository.findAll());
     }
 
     @Override

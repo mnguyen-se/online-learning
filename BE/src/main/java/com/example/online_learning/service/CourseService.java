@@ -10,7 +10,7 @@ import java.util.List;
 public interface CourseService {
     public void createCourse(CourseDtoReq dto, CustomUserDetail userDetail);
     public void deleteCourse(Long courseId);
-    public void updateCourse(Long courseId, CourseDtoReq dto);
-    public List<Course> getAllCourses();
+    public void updateCourse(Long courseId, CourseDtoReq dto, CustomUserDetail userDetail);
+    public List<CourseDtoRes> getAllCourses();
     public List<CourseDtoRes> findCoursesByPublicTrue();
 }
