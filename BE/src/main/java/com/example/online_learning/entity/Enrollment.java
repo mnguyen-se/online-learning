@@ -34,6 +34,9 @@ public class Enrollment {
     @Enumerated(EnumType.STRING)
     private EnrollmentStatus status;
 
+    @Column(nullable = false)
+    private Boolean deleted = false;
+
     @CreationTimestamp
     private LocalDateTime enrolledAt;
 }
