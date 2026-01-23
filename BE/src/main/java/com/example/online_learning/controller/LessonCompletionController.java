@@ -1,8 +1,10 @@
 package com.example.online_learning.controller;
 
+import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.LessonCompletionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,9 +17,9 @@ public class LessonCompletionController {
     @PostMapping("/{lessonId}/complete")
     public ResponseEntity<Void> completeLesson(
             @PathVariable Long lessonId,
-            @RequestParam Long userId
+            @AuthenticationPrincipal CustomUserDetail userDetail
     ) {
-        lessonCompletionService.completeLesson(lessonId, userId);
+        lessonCompletionService.completeLesson(lessonId, userDetail);
         return ResponseEntity.ok().build();
     }
 }

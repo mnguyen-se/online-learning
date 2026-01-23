@@ -2,9 +2,11 @@ package com.example.online_learning.controller;
 
 
 import com.example.online_learning.dto.response.LearningProcessDtoRes;
+import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.LearningProcessService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,9 +22,9 @@ public class LearningProcessController {
     @PostMapping("/enroll")
     public ResponseEntity<Void> createLearningProcess(
             @RequestParam Long courseId,
-            @RequestParam Long userId
+            @AuthenticationPrincipal CustomUserDetail userDetail
     ) {
-        learningProcessService.createLearningProcess(courseId, userId);
+        learningProcessService.createLearningProcess(courseId, userDetail);
         return ResponseEntity.ok().build();
     }
 
@@ -32,10 +34,10 @@ public class LearningProcessController {
     @GetMapping
     public ResponseEntity<LearningProcessDtoRes> getLearningProcess(
             @RequestParam Long courseId,
-            @RequestParam Long userId
+            @AuthenticationPrincipal CustomUserDetail userDetail
     ) {
         return ResponseEntity.ok(
-                learningProcessService.getByCourseAndUser(courseId, userId)
+                learningProcessService.getByCourseAndUser(courseId, userDetail)
         );
     }
 
@@ -45,10 +47,10 @@ public class LearningProcessController {
     @GetMapping("/completed")
     public ResponseEntity<Boolean> isCourseCompleted(
             @RequestParam Long courseId,
-            @RequestParam Long userId
+            @AuthenticationPrincipal CustomUserDetail userDetail
     ) {
         return ResponseEntity.ok(
-                learningProcessService.isCourseCompleted(courseId, userId)
+                learningProcessService.isCourseCompleted(courseId, userDetail)
         );
     }
 }

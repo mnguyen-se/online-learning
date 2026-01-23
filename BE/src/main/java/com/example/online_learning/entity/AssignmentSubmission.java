@@ -4,6 +4,7 @@ import com.example.online_learning.constants.SubmissionStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -29,6 +30,7 @@ public class AssignmentSubmission {
     @Column(columnDefinition = "TEXT")
     private String content; // link file hoặc text
 
+    @CreationTimestamp
     private LocalDateTime submittedAt;
 
     private Integer score;

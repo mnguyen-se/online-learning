@@ -1,5 +1,6 @@
 package com.example.online_learning.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -24,7 +25,7 @@ public class Course {
     private String title;
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
-    private List<Lesson> lessons;
+    private List<Module> modules;
 
     @Column(columnDefinition = "TEXT")
     private String description;
@@ -36,6 +37,10 @@ public class Course {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    private boolean isDeleted;
+    private boolean isPublic;
+
+    public Boolean getIsPublic() { return isPublic; }
+    public void setIsPublic(Boolean isPublic) { this.isPublic = isPublic; }
+
 }
 

@@ -4,6 +4,7 @@ import com.example.online_learning.constants.ProgressStatus;
 import com.example.online_learning.dto.response.LearningProcessDtoRes;
 import com.example.online_learning.entity.LearningProgress;
 import com.example.online_learning.repository.*;
+import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.LearningProcessService;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -24,16 +25,16 @@ public class LearningProcessServiceImpl implements LearningProcessService {
      * Tạo learning process khi user enroll course
      */
     @Override
-    public void createLearningProcess(Long courseId, Long userId) {
+    public void createLearningProcess(Long courseId, CustomUserDetail userDetail) {
 
         if (learningProgressRepository
-                .findByUser_UserIdAndCourse_CourseId(userId, courseId)
+                .findByUser_UserIdAndCourse_CourseId(userDetail.getUser().getUserId(), courseId)
                 .isPresent()) {
             return;
         }
 
         LearningProgress progress = LearningProgress.builder()
-                .user(userRepository.getReferenceById(userId))
+                .user(userRepository.getReferenceById(userDetail.getUser().getUserId()))
                 .course(courseRepository.getReferenceById(courseId))
                 .completedTasks(0)
                 .status(ProgressStatus.IN_PROGRESS)
@@ -47,10 +48,10 @@ public class LearningProcessServiceImpl implements LearningProcessService {
      * +1 progress khi hoàn thành lesson / assignment
      */
     @Override
-    public void increaseProgress(Long courseId, Long userId) {
+    public void increaseProgress(Long courseId, CustomUserDetail userDetail) {
 
         LearningProgress progress = learningProgressRepository
-                .findByUser_UserIdAndCourse_CourseId(userId, courseId)
+                .findByUser_UserIdAndCourse_CourseId(userDetail.getUser().getUserId(), courseId)
                 .orElseThrow(() ->
                         new IllegalStateException("Learning progress not found")
                 );
@@ -66,10 +67,10 @@ public class LearningProcessServiceImpl implements LearningProcessService {
      */
     @Override
     @Transactional(readOnly = true)
-    public LearningProcessDtoRes getByCourseAndUser(Long courseId, Long userId) {
+    public LearningProcessDtoRes getByCourseAndUser(Long courseId, CustomUserDetail userDetail) {
 
         LearningProgress progress = learningProgressRepository
-                .findByUser_UserIdAndCourse_CourseId(userId, courseId)
+                .findByUser_UserIdAndCourse_CourseId(userDetail.getUser().getUserId(), courseId)
                 .orElseThrow(() ->
                         new IllegalStateException("Learning progress not found")
                 );
@@ -91,7 +92,7 @@ public class LearningProcessServiceImpl implements LearningProcessService {
 
         return LearningProcessDtoRes.builder()
                 .courseId(courseId)
-                .userId(userId)
+                .userId(userDetail.getUser().getUserId())
                 .totalTasks(totalTasks)
                 .completedTasks(completedTasks)
                 .remainingTasks(totalTasks - completedTasks)
@@ -108,10 +109,10 @@ public class LearningProcessServiceImpl implements LearningProcessService {
      */
     @Override
     @Transactional(readOnly = true)
-    public boolean isCourseCompleted(Long courseId, Long userId) {
+    public boolean isCourseCompleted(Long courseId, CustomUserDetail userDetail) {
 
         return learningProgressRepository
-                .findByUser_UserIdAndCourse_CourseId(userId, courseId)
+                .findByUser_UserIdAndCourse_CourseId(userDetail.getUser().getUserId(), courseId)
                 .map(lp -> lp.getStatus() == ProgressStatus.DONE)
                 .orElse(false);
     }

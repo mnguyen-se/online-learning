@@ -42,7 +42,7 @@ public class LessonController {
 
     @GetMapping("/view")
     public ResponseEntity<?> getAllLessonsIsNotDeleted(){
-        return ResponseEntity.ok().body(lessonService.findLessonByDeletedFalse());
+        return ResponseEntity.ok().body(lessonService.findLessonByPublicTrue());
     }
 
 }

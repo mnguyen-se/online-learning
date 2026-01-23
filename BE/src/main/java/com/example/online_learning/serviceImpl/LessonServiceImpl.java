@@ -1,7 +1,7 @@
 package com.example.online_learning.serviceImpl;
 
 import com.example.online_learning.dto.request.lessonDtoReq;
-import com.example.online_learning.dto.response.lessonDtoRes;
+import com.example.online_learning.dto.response.LessonDtoRes;
 import com.example.online_learning.entity.Lesson;
 import com.example.online_learning.exception.NotFoundException;
 import com.example.online_learning.mapper.LessonMapper;
@@ -19,14 +19,15 @@ public class LessonServiceImpl implements LessonService {
         this.lessonMapper = lessonMapper;
     }
     @Override
-    public Lesson createLesson(lessonDtoReq dto) {
-        return lessonRepository.save(lessonMapper.toEntity(dto));
+    public LessonDtoRes createLesson(lessonDtoReq dto) {
+        Lesson l = lessonRepository.save(lessonMapper.toEntity(dto));
+        return lessonMapper.toDto(l);
     }
 
     @Override
     public void deleteLesson(Long lessonId) {
         Lesson lesson = lessonRepository.findByLessonId(lessonId);
-        lesson.setDeleted(true);
+        lesson.setIsPublic(true);
         lessonRepository.save(lesson);
     }
 
@@ -34,23 +35,20 @@ public class LessonServiceImpl implements LessonService {
     public void updateLesson(Long lessonId, lessonDtoReq dto) {
         Lesson lesson = lessonRepository.findByLessonId(lessonId);
         lesson.setLessonType(dto.getLessonType());
-        lesson.setDuration(dto.getDuration());
         lesson.setTitle(dto.getTitle());
         lesson.setOrderIndex(dto.getOrderIndex());
         lesson.setContentUrl(dto.getContentUrl());
-
         lessonRepository.save(lesson);
     }
 
     @Override
-    public List<lessonDtoRes> getAllLessons() {
-        List<Lesson> lessons = lessonRepository.findAllByDeletedFalse();
-        return lessonMapper.toDto(lessons);
+    public List<Lesson> getAllLessons() {
+        return lessonRepository.findAll();
     }
 
     @Override
-    public List<lessonDtoRes> findLessonByDeletedFalse() {
-        List<Lesson> lessons = lessonRepository.findAllByDeletedFalse();
+    public List<LessonDtoRes> findLessonByPublicTrue() {
+        List<Lesson> lessons = lessonRepository.findAllByIsPublicTrue();
         if(lessons.isEmpty()) throw new NotFoundException("No lesson found");
         return lessonMapper.toDto(lessons);
     }

@@ -2,6 +2,7 @@ package com.example.online_learning.controller;
 
 import com.example.online_learning.dto.request.CourseDtoReq;
 import com.example.online_learning.dto.response.CourseDtoRes;
+import com.example.online_learning.entity.Course;
 import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.CourseService;
 import org.springframework.http.HttpStatus;
@@ -53,14 +54,14 @@ public class CourseController {
     // ✅ Get all courses (kể cả deleted)
     @PreAuthorize("hasAnyRole('COURSE_MANAGER','ADMIN')")
     @GetMapping
-    public ResponseEntity<List<CourseDtoRes>> getAllCourses() {
+    public ResponseEntity<List<Course>> getAllCourses() {
         return ResponseEntity.ok(courseService.getAllCourses());
     }
 
     // ✅ Get only active courses (deleted = false)
     @GetMapping("/active")
     public ResponseEntity<List<CourseDtoRes>> getActiveCourses() {
-        return ResponseEntity.ok(courseService.findCoursesByDeletedFalse());
+        return ResponseEntity.ok(courseService.findCoursesByPublicTrue());
     }
 }
 

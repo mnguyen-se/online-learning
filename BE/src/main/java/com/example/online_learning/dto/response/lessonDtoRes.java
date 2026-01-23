@@ -1,6 +1,7 @@
 package com.example.online_learning.dto.response;
 
 import com.example.online_learning.constants.LessonType;
+import com.example.online_learning.entity.Course;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class lessonDtoRes {
+public class LessonDtoRes {
     @Column(nullable = false)
     private String title;
 
@@ -22,13 +23,11 @@ public class lessonDtoRes {
     @Column(columnDefinition = "TEXT")
     private String contentUrl;
 
-    private Integer duration;
-
     @Column(nullable = false)
     private Integer orderIndex;
 
     private String sectionTitle;
 
-    private Long lessonId;
+    private Long courseId;
 
 }

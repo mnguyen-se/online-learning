@@ -10,20 +10,21 @@ import java.util.List;
 @Repository
 public interface LessonRepository extends JpaRepository<Lesson, Long> {
     Lesson findByLessonId(Long lessonId);
-    List<Lesson> findAllByDeletedFalse();
+    List<Lesson> findAllByLessonIdIn(List<Long> lessonIds);
+    List<Lesson> findAllByIsPublicTrue();
     @Query("""
     SELECT COUNT(l)
     FROM Lesson l
-    WHERE l.course.courseId = :courseId
-      AND l.isDeleted = false
+    WHERE l.module.course.courseId = :courseId
+      AND l.isPublic = true
 """)
     long countLessonsByCourseId(@Param("courseId") Long courseId);
 
     @Query("""
     SELECT l.title
     FROM Lesson l
-    WHERE l.course.courseId = :courseId
-      AND l.isDeleted = false
+    WHERE l.module.course.courseId = :courseId
+      AND l.isPublic = true
       AND l.lessonId NOT IN (
           SELECT lc.lesson.lessonId
           FROM LessonCompletion lc

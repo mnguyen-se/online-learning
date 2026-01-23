@@ -22,9 +22,9 @@ public class lessonDtoReq {
     @Column(columnDefinition = "TEXT")
     private String contentUrl;
 
-    private Integer duration;
-
     @Column(nullable = false)
     private Integer orderIndex;
+
+    private Long moduleId;
 
 }

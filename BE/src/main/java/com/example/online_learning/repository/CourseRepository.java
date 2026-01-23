@@ -10,5 +10,5 @@ import java.util.List;
 public interface CourseRepository extends JpaRepository<Course, Long> {
     Course findByCourseId(Long courseId);
     Course findByTitle(String title);
-    List<Course> findByDeletedFalse();
+    List<Course> findAllByIsPublicTrue();
 }

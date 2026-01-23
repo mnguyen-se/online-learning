@@ -1,18 +1,19 @@
 package com.example.online_learning.service;
 
 import com.example.online_learning.entity.Feedback;
+import com.example.online_learning.security.CustomUserDetail;
 
 public interface FeedbackService {
-    public Feedback gradeSubmission(
+    public void gradeSubmission(
             Long submissionId,
-            Long teacherId,
+            CustomUserDetail userDetail,
             Integer score,
             String comment
     );
 
     public Feedback gradeSubmissionWithAI(
             Long submissionId,
-            Long teacherId,
+            CustomUserDetail userDetail,
             Integer score,
             String comment
     );

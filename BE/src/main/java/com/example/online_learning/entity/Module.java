@@ -1,14 +1,15 @@
 package com.example.online_learning.entity;
 
-import com.example.online_learning.constants.LessonType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(
-        name = "lesson",
+        name = "module",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"module_id", "order_index"})
+                @UniqueConstraint(columnNames = {"course_id", "order_index"})
         }
 )
 @Getter
@@ -16,25 +17,21 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Lesson {
+public class Module {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long lessonId;
+    private Long moduleId;
 
     @ManyToOne
-    @JoinColumn(name = "module_id", nullable = false)
-    private Module module;
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
+
+    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL)
+    private List<Lesson> lessons;
 
     @Column(nullable = false)
     private String title;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private LessonType lessonType;
-
-    @Column(columnDefinition = "TEXT")
-    private String contentUrl;
 
     @Column(nullable = false)
     private Integer orderIndex;
@@ -43,5 +40,4 @@ public class Lesson {
 
     public Boolean getIsPublic() { return isPublic; }
     public void setIsPublic(Boolean isPublic) { this.isPublic = isPublic; }
-
 }

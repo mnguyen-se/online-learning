@@ -1,7 +1,7 @@
 package com.example.online_learning.service;
 
-import com.example.online_learning.entity.AssignmentSubmission;
+import com.example.online_learning.security.CustomUserDetail;
 
 public interface AssignmentSubmissionService {
-    public AssignmentSubmission submit(Long assignmentId, Long userId, String content);
+    public void submit(Long assignmentId, CustomUserDetail userDetail, String content);
 }

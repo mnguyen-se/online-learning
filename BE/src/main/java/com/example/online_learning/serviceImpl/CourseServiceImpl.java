@@ -29,7 +29,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public void deleteCourse(Long courseId) {
         Course course = courseRepository.findByCourseId(courseId);
-        course.setDeleted(true);
+        course.setIsPublic(true);
         courseRepository.save(course);
     }
 
@@ -40,12 +40,12 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<CourseDtoRes> getAllCourses() {
-        return courseMapper.toDto(courseRepository.findAll());
+    public List<Course> getAllCourses() {
+        return courseRepository.findAll();
     }
 
     @Override
-    public List<CourseDtoRes> findCoursesByDeletedFalse() {
-        return courseMapper.toDto(courseRepository.findByDeletedFalse());
+    public List<CourseDtoRes> findCoursesByPublicTrue() {
+        return courseMapper.toDto(courseRepository.findAllByIsPublicTrue());
     }
 }

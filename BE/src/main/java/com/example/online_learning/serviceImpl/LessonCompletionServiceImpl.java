@@ -5,6 +5,7 @@ import com.example.online_learning.entity.LessonCompletion;
 import com.example.online_learning.repository.LessonCompletionRepository;
 import com.example.online_learning.repository.LessonRepository;
 import com.example.online_learning.repository.UserRepository;
+import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.LearningProcessService;
 import com.example.online_learning.service.LessonCompletionService;
 import lombok.RequiredArgsConstructor;
@@ -25,11 +26,11 @@ public class LessonCompletionServiceImpl
     private final LearningProcessService learningProcessService;
 
     @Override
-    public void completeLesson(Long lessonId, Long userId) {
+    public void completeLesson(Long lessonId, CustomUserDetail userDetail) {
 
         if (completionRepository
                 .existsByUser_UserIdAndLesson_LessonId(
-                        userId, lessonId)) {
+                        userDetail.getUser().getUserId(), lessonId)) {
             return;
         }
 
@@ -40,7 +41,7 @@ public class LessonCompletionServiceImpl
                         );
 
         LessonCompletion completion = LessonCompletion.builder()
-                .user(userRepository.getReferenceById(userId))
+                .user(userRepository.getReferenceById(userDetail.getUser().getUserId()))
                 .lesson(lesson)
                 .completedAt(LocalDateTime.now())
                 .build();
@@ -50,9 +51,9 @@ public class LessonCompletionServiceImpl
         // 🔥 CỘNG PROGRESS
         learningProcessService.increaseProgress(
                 lesson
-                        .getCourse()
+                        .getModule().getCourse()
                         .getCourseId(),
-                userId
+                userDetail
         );
     }
 }

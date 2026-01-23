@@ -1,11 +1,13 @@
 package com.example.online_learning.controller;
 
 import com.example.online_learning.dto.request.AssignmentDtoReq;
+import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.AssignmentService;
 import com.example.online_learning.service.AssignmentSubmissionService;
 import com.example.online_learning.service.FeedbackService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,26 +31,30 @@ public class AssignmentController {
         );
     }
 
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
     @PostMapping("/{assignmentId}/submit")
     public ResponseEntity<?> submitAssignment(
             @PathVariable Long assignmentId,
-            @RequestParam Long userId,
+            @AuthenticationPrincipal CustomUserDetail userDetail,
             @RequestBody String content
     ) {
+        submissionService.submit(assignmentId, userDetail, content);
         return ResponseEntity.ok(
-                submissionService.submit(assignmentId, userId, content)
+                "Submit assignment successfully!"
         );
     }
 
+    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
     @PostMapping("/submissions/{submissionId}/grade")
     public ResponseEntity<?> grade(
             @PathVariable Long submissionId,
-            @RequestParam Long teacherId,
+            @AuthenticationPrincipal CustomUserDetail userDetail,
             @RequestParam Integer score,
             @RequestBody String comment
     ) {
+        feedbackService.gradeSubmission(submissionId, userDetail, score, comment);
         return ResponseEntity.ok(
-                feedbackService.gradeSubmission(submissionId, teacherId, score, comment)
+                "Grade submission successfully!"
         );
     }
 
