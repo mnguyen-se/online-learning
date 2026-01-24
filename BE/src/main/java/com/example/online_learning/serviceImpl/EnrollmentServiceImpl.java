@@ -3,16 +3,23 @@ package com.example.online_learning.serviceImpl;
 import com.example.online_learning.constants.EnrollmentStatus;
 import com.example.online_learning.constants.UserRole;
 import com.example.online_learning.dto.request.EnrollStudentDtoReq;
+import com.example.online_learning.dto.response.EnrolledCourseDtoRes;
+import com.example.online_learning.dto.response.EnrolledStudentDtoRes;
+import com.example.online_learning.entity.Course;
 import com.example.online_learning.entity.Enrollment;
 import com.example.online_learning.entity.User;
 import com.example.online_learning.exception.NotFoundException;
 import com.example.online_learning.repository.CourseRepository;
 import com.example.online_learning.repository.EnrollmentRepository;
 import com.example.online_learning.repository.UserRepository;
+import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.EnrollmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -91,5 +98,89 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
         enrollment.setDeleted(true);
         enrollmentRepository.save(enrollment);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EnrolledStudentDtoRes> getEnrolledStudentsByCourseId(Long courseId) {
+        // Kiểm tra course có tồn tại không
+        if (!courseRepository.existsById(courseId)) {
+            throw new NotFoundException("Course not found with id: " + courseId);
+        }
+
+        // Lấy danh sách enrollments theo courseId và chưa bị xóa
+        List<Enrollment> enrollments = enrollmentRepository.findByCourse_CourseIdAndDeletedFalse(courseId);
+
+        // Chuyển đổi sang DTO
+        return enrollments.stream()
+                .map(enrollment -> {
+                    User student = enrollment.getUser();
+                    EnrolledStudentDtoRes dto = new EnrolledStudentDtoRes();
+                    dto.setEnrollmentId(enrollment.getEnrollmentId());
+                    dto.setStudentId(student.getUserId());
+                    dto.setUsername(student.getUserName());
+                    dto.setName(student.getName());
+                    dto.setEmail(student.getEmail());
+                    dto.setAddress(student.getAddress());
+                    dto.setStatus(enrollment.getStatus());
+                    dto.setEnrolledAt(enrollment.getEnrolledAt());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EnrolledCourseDtoRes> getEnrolledCoursesByUsername(String username) {
+        // Kiểm tra user có tồn tại không
+        User student = userRepository.findByUserName(username)
+                .orElseThrow(() -> new NotFoundException("Student not found with username: " + username));
+
+        // Lấy danh sách enrollments theo username và chưa bị xóa
+        List<Enrollment> enrollments = enrollmentRepository.findByUser_UserNameAndDeletedFalse(username);
+
+        // Chuyển đổi sang DTO
+        return enrollments.stream()
+                .map(enrollment -> {
+                    Course course = enrollment.getCourse();
+                    EnrolledCourseDtoRes dto = new EnrolledCourseDtoRes();
+                    dto.setEnrollmentId(enrollment.getEnrollmentId());
+                    dto.setCourseId(course.getCourseId());
+                    dto.setCourseTitle(course.getTitle());
+                    dto.setCourseDescription(course.getDescription());
+                    dto.setIsPublic(course.getIsPublic());
+                    dto.setCourseCreatedAt(course.getCreatedAt());
+                    dto.setEnrollmentStatus(enrollment.getStatus());
+                    dto.setEnrolledAt(enrollment.getEnrolledAt());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EnrolledCourseDtoRes> getMyEnrolledCourses(CustomUserDetail userDetail) {
+        // Lấy username từ user đã đăng nhập
+        String username = userDetail.getUsername();
+        
+        // Lấy danh sách enrollments theo username và chưa bị xóa
+        List<Enrollment> enrollments = enrollmentRepository.findByUser_UserNameAndDeletedFalse(username);
+
+        // Chuyển đổi sang DTO
+        return enrollments.stream()
+                .map(enrollment -> {
+                    Course course = enrollment.getCourse();
+                    EnrolledCourseDtoRes dto = new EnrolledCourseDtoRes();
+                    dto.setEnrollmentId(enrollment.getEnrollmentId());
+                    dto.setCourseId(course.getCourseId());
+                    dto.setCourseTitle(course.getTitle());
+                    dto.setCourseDescription(course.getDescription());
+                    dto.setIsPublic(course.getIsPublic());
+                    dto.setCourseCreatedAt(course.getCreatedAt());
+                    dto.setEnrollmentStatus(enrollment.getStatus());
+                    dto.setEnrolledAt(enrollment.getEnrolledAt());
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 }
