@@ -42,8 +42,8 @@ public class LessonServiceImpl implements LessonService {
     }
 
     @Override
-    public List<Lesson> getAllLessons() {
-        return lessonRepository.findAll();
+    public List<LessonDtoRes> getAllLessons() {
+        return lessonMapper.toDto(lessonRepository.findAll());
     }
 
     @Override

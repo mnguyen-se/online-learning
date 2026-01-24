@@ -10,6 +10,6 @@ public interface LessonService {
     public LessonDtoRes createLesson(LessonDtoReq dto);
     public void deleteLesson(Long lessonId);
     public void updateLesson(Long lessonId, LessonDtoReq dto);
-    public List<Lesson> getAllLessons();
+    public List<LessonDtoRes> getAllLessons();
     public List<LessonDtoRes> findLessonByPublicTrue();
 }
