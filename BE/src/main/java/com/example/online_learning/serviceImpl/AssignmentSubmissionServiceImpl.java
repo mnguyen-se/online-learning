@@ -17,6 +17,7 @@ import com.example.online_learning.repository.StudentAnswerRepository;
 import com.example.online_learning.repository.UserRepository;
 import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.AssignmentSubmissionService;
+import com.example.online_learning.service.LearningProcessService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,18 +34,22 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
     private final UserRepository userRepo;
     private final QuestionRepository questionRepository;
     private final StudentAnswerRepository studentAnswerRepository;
+    private final LearningProcessService learningProcessService;
+    private static final double COMPLETION_THRESHOLD = 70.0;
 
     public AssignmentSubmissionServiceImpl(
             AssignmentSubmissionRepository submissionRepo,
             AssignmentRepository assignmentRepo,
             UserRepository userRepo,
             QuestionRepository questionRepository,
-            StudentAnswerRepository studentAnswerRepository) {
+            StudentAnswerRepository studentAnswerRepository,
+            LearningProcessService learningProcessService) {
         this.submissionRepo = submissionRepo;
         this.assignmentRepo = assignmentRepo;
         this.userRepo = userRepo;
         this.questionRepository = questionRepository;
         this.studentAnswerRepository = studentAnswerRepository;
+        this.learningProcessService = learningProcessService;
     }
 
     public void submit(Long assignmentId, CustomUserDetail userDetail, String content) {
@@ -133,8 +138,26 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 .mapToInt(q -> q.getPoints() != null ? q.getPoints() : 1)
                 .sum();
 
+        double percentage = maxScore > 0 ? (totalScore * 100.0 / maxScore) : 0.0;
+        
+        SubmissionStatus previousStatus = submission.getStatus();
+        boolean wasCompleted = previousStatus == SubmissionStatus.COMPLETED;
+        
+        if (percentage >= COMPLETION_THRESHOLD) {
+            submission.setStatus(SubmissionStatus.COMPLETED);
+            
+            if (!wasCompleted) {
+                Long courseId = assignment.getCourse().getCourseId();
+                try {
+                    learningProcessService.increaseProgress(courseId, userDetail);
+                } catch (Exception e) {
+                }
+            }
+        } else {
+            submission.setStatus(SubmissionStatus.GRADED);
+        }
+
         submission.setScore(totalScore);
-        submission.setStatus(SubmissionStatus.GRADED);
         submission = submissionRepo.save(submission);
 
         studentAnswerRepository.saveAll(studentAnswers);
@@ -158,7 +181,7 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 })
                 .collect(Collectors.toList());
 
-        double percentage = maxScore > 0 ? (totalScore * 100.0 / maxScore) : 0.0;
+        double roundedPercentage = Math.round(percentage * 100.0) / 100.0;
 
         return QuizResultDtoRes.builder()
                 .submissionId(submission.getSubmissionId())
@@ -168,7 +191,7 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 .wrongAnswers(wrongCount)
                 .score(totalScore)
                 .maxScore(maxScore)
-                .percentage(Math.round(percentage * 100.0) / 100.0)
+                .percentage(roundedPercentage)
                 .details(details)
                 .build();
     }
