@@ -12,7 +12,6 @@ import java.util.List;
 public class ModuleDtoReq {
     private Long courseId;
     private String title;
-    private Integer orderIndex;
     private boolean isPublic;
 
     public boolean getIsPublic() {

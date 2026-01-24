@@ -29,7 +29,6 @@ public class ModuleMapper {
         Course course = courseRepository.findByCourseId(dto.getCourseId());
         if(course == null) throw new NotFoundException("Course not found");
         module.setCourse(course);
-        module.setOrderIndex(dto.getOrderIndex());
         module.setIsPublic(dto.getIsPublic());
         return module;
     }

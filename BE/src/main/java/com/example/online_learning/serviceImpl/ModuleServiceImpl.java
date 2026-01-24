@@ -26,6 +26,7 @@ public class ModuleServiceImpl implements ModuleService {
                 dto.getCourseId(), dto.getOrderIndex()
         )) throw new IllegalArgumentException("Order index already exists in the course");
         Module module = moduleMapper.toEntity(dto);
+        module.setOrderIndex(moduleRepository.findMaxOrderIndexByCourseId(dto.getCourseId()) + 1);
         moduleRepository.save(module);
         return moduleMapper.toDto(module);
     }

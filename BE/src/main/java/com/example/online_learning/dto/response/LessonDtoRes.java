@@ -28,6 +28,6 @@ public class LessonDtoRes {
 
     private String sectionTitle;
 
-    private Long courseId;
+    private Long moduleId;
 
 }

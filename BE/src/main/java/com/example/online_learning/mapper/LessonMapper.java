@@ -22,7 +22,6 @@ public class LessonMapper {
         Lesson lessonEntity = new Lesson();
         lessonEntity.setLessonType(lesson.getLessonType());
         lessonEntity.setTitle(lesson.getTitle());
-        lessonEntity.setOrderIndex(lesson.getOrderIndex());
         lessonEntity.setContentUrl(lesson.getContentUrl());
         Module module = moduleRepository.getReferenceById(lesson.getModuleId());
         lessonEntity.setModule(module);
@@ -35,7 +34,7 @@ public class LessonMapper {
         dto.setTitle(lesson.getTitle());
         dto.setOrderIndex(lesson.getOrderIndex());
         dto.setContentUrl(lesson.getContentUrl());
-        dto.setCourseId(lesson.getModule().getCourse().getCourseId());
+        dto.setModuleId(lesson.getModule().getModuleId());
         return dto;
     }
 

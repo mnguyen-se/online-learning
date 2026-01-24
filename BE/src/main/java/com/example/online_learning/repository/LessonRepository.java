@@ -37,6 +37,7 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
             @Param("userId") Long userId
     );
 
-
-
+    boolean existsByModule_ModuleIdAndOrderIndex(Long moduleId, Integer orderIndex);
+    @Query("SELECT COALESCE(MAX(l.orderIndex), 0) FROM Lesson l WHERE l.module.moduleId = :moduleId")
+    Integer findMaxOrderIndexByCourseId(@Param("moduleId") Long moduleId);
 }

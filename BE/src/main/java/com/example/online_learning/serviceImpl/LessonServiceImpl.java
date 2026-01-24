@@ -20,7 +20,12 @@ public class LessonServiceImpl implements LessonService {
     }
     @Override
     public LessonDtoRes createLesson(LessonDtoReq dto) {
-        Lesson l = lessonRepository.save(lessonMapper.toEntity(dto));
+        if(lessonRepository.existsByModule_ModuleIdAndOrderIndex(dto.getModuleId(), dto.getOrderIndex())){
+            throw new IllegalArgumentException("Order index already exists in the module");
+        }
+        Lesson l = lessonMapper.toEntity(dto);
+        l.setOrderIndex(lessonRepository.findMaxOrderIndexByCourseId(dto.getModuleId()) + 1);
+        lessonRepository.save(l);
         return lessonMapper.toDto(l);
     }
 
