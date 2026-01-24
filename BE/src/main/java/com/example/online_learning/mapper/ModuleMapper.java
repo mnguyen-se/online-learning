@@ -37,6 +37,7 @@ public class ModuleMapper {
     public ModuleDtoRes toDto(Module module) {
         ModuleDtoRes dto = new ModuleDtoRes();
         dto.setTitle(module.getTitle());
+        dto.setModuleId(module.getModuleId());
         dto.setCourseId(module.getCourse().getCourseId());
         dto.setOrderIndex(module.getOrderIndex());
 

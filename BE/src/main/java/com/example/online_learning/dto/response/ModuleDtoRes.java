@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class ModuleDtoRes {
+    private Long moduleId;
     private Long courseId;
     private List<LessonDtoRes> lessons;
     private String title;
