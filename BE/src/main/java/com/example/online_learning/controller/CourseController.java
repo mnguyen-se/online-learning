@@ -2,7 +2,6 @@ package com.example.online_learning.controller;
 
 import com.example.online_learning.dto.request.CourseDtoReq;
 import com.example.online_learning.dto.response.CourseDtoRes;
-import com.example.online_learning.entity.Course;
 import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.CourseService;
 import org.springframework.http.HttpStatus;
@@ -26,10 +25,9 @@ public class CourseController {
     // ✅ Create course
     @PreAuthorize("hasAnyRole('COURSE_MANAGER','ADMIN')")
     @PostMapping
-    public ResponseEntity<Void> createCourse(@RequestBody CourseDtoReq dto,
+    public ResponseEntity<?> createCourse(@RequestBody CourseDtoReq dto,
                                              @AuthenticationPrincipal CustomUserDetail userDetail) {
-        courseService.createCourse(dto, userDetail);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return new ResponseEntity<>(courseService.createCourse(dto, userDetail), HttpStatus.CREATED);
     }
 
     // ✅ Update course
@@ -41,14 +39,6 @@ public class CourseController {
             @AuthenticationPrincipal CustomUserDetail userDetail
     ) {
         courseService.updateCourse(courseId, dto, userDetail);
-        return ResponseEntity.ok().build();
-    }
-
-    // ✅ Soft delete course
-    @PreAuthorize("hasAnyRole('COURSE_MANAGER','ADMIN')")
-    @PostMapping("/delete/{id}")
-    public ResponseEntity<Void> deleteCourse(@PathVariable("id") Long courseId) {
-        courseService.deleteCourse(courseId);
         return ResponseEntity.ok().build();
     }
 

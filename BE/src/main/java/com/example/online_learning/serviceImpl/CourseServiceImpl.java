@@ -22,21 +22,16 @@ public class CourseServiceImpl implements CourseService {
         this.courseMapper = courseMapper;
     }
     @Override
-    public void createCourse(CourseDtoReq dto, CustomUserDetail userDetail) {
+    public CourseDtoRes createCourse(CourseDtoReq dto, CustomUserDetail userDetail) {
         Course course = courseMapper.toEntity(dto);
         course.setCreatedBy(userDetail.getUser());
-        courseRepository.save(course);
-    }
-
-    @Override
-    public void deleteCourse(Long courseId) {
-        Course course = courseRepository.findByCourseId(courseId);
         course.setIsPublic(false);
         courseRepository.save(course);
+        return courseMapper.toDto(course);
     }
 
     @Override
-    public void updateCourse(Long courseId, CourseDtoReq dto, CustomUserDetail userDetail) {
+    public CourseDtoRes updateCourse(Long courseId, CourseDtoReq dto, CustomUserDetail userDetail) {
         Course course = courseRepository.findByCourseId(courseId);
         if (course == null) {
             throw new NotFoundException("Course not found");
@@ -56,6 +51,7 @@ public class CourseServiceImpl implements CourseService {
         course.setCreatedAt(LocalDateTime.now());
 
         courseRepository.save(course);
+        return courseMapper.toDto(course);
     }
 
 

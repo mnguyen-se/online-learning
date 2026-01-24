@@ -3,6 +3,7 @@ package com.example.online_learning.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -28,7 +29,7 @@ public class Module {
     private Course course;
 
     @OneToMany(mappedBy = "module", cascade = CascadeType.ALL)
-    private List<Lesson> lessons;
+    private List<Lesson> lessons = new ArrayList<>();
 
     @Column(nullable = false)
     private String title;

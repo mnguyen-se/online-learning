@@ -2,6 +2,7 @@ package com.example.online_learning.controller;
 
 import com.example.online_learning.dto.request.LessonDtoReq;
 import com.example.online_learning.service.LessonService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class LessonController {
     @PreAuthorize("hasAnyRole('COURSE_MANAGER','ADMIN')")
     @PostMapping("/create")
     public ResponseEntity<?> createLesson(@RequestBody LessonDtoReq dto){
-        return ResponseEntity.ok().body(lessonService.createLesson(dto));
+        return new ResponseEntity<>(lessonService.createLesson(dto), HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasAnyRole('COURSE_MANAGER','ADMIN')")
