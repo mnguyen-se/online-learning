@@ -22,9 +22,6 @@ public class ModuleServiceImpl implements ModuleService {
     }
     @Override
     public ModuleDtoRes createModule(ModuleDtoReq dto) {
-        if(moduleRepository.existsByCourse_CourseIdAndOrderIndex(
-                dto.getCourseId(), dto.getOrderIndex()
-        )) throw new IllegalArgumentException("Order index already exists in the course");
         Module module = moduleMapper.toEntity(dto);
         module.setOrderIndex(moduleRepository.findMaxOrderIndexByCourseId(dto.getCourseId()) + 1);
         moduleRepository.save(module);
