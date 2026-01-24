@@ -29,8 +29,7 @@ public class LessonServiceImpl implements LessonService {
     @Override
     public void deleteLesson(Long lessonId) {
         Lesson lesson = lessonRepository.findByLessonId(lessonId);
-        lesson.setIsPublic(true);
-        lessonRepository.save(lesson);
+        lessonRepository.delete(lesson);
     }
 
     @Override
