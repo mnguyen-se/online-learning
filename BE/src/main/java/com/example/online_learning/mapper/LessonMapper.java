@@ -34,6 +34,7 @@ public class LessonMapper {
         dto.setTitle(lesson.getTitle());
         dto.setOrderIndex(lesson.getOrderIndex());
         dto.setContentUrl(lesson.getContentUrl());
+        dto.setLessonId(lesson.getLessonId());
         dto.setModuleId(lesson.getModule().getModuleId());
         return dto;
     }

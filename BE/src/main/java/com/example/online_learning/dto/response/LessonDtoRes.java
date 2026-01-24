@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class LessonDtoRes {
+    private Long lessonId;
     @Column(nullable = false)
     private String title;
 
