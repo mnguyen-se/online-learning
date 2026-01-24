@@ -7,7 +7,7 @@ import com.example.online_learning.entity.Assignment;
 import java.util.List;
 
 public interface AssignmentService {
-    AssignmentDtoRes createAssignment(AssignmentDtoReq request);
+    AssignmentDtoRes createAssignment(Long courseId, AssignmentDtoReq request);
     AssignmentDtoRes viewAssignment(Long assignmentId);
     List<Assignment> findByCourseId(Long courseId);
 }
