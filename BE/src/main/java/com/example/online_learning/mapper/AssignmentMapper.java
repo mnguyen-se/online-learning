@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 public class AssignmentMapper {
     public AssignmentDtoRes toDtoRes(Assignment assignment){
         AssignmentDtoRes dto = new AssignmentDtoRes();
+        dto.setAssignmentId(assignment.getAssignmentId());
         dto.setTitle(assignment.getTitle());
         dto.setDueDate(assignment.getDueDate());
         dto.setDescription(assignment.getDescription());
