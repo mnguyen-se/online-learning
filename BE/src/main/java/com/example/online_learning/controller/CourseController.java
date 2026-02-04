@@ -1,6 +1,7 @@
 package com.example.online_learning.controller;
 
 import com.example.online_learning.dto.request.CourseDtoReq;
+import com.example.online_learning.dto.request.UpdateCourseDtoReq;
 import com.example.online_learning.dto.response.CourseDtoRes;
 import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.CourseService;
@@ -35,7 +36,7 @@ public class CourseController {
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateCourse(
             @PathVariable("id") Long courseId,
-            @RequestBody CourseDtoReq dto,
+            @RequestBody UpdateCourseDtoReq dto,
             @AuthenticationPrincipal CustomUserDetail userDetail
     ) {
         courseService.updateCourse(courseId, dto, userDetail);

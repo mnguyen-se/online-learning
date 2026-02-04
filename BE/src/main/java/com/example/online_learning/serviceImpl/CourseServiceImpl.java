@@ -1,6 +1,7 @@
 package com.example.online_learning.serviceImpl;
 
 import com.example.online_learning.dto.request.CourseDtoReq;
+import com.example.online_learning.dto.request.UpdateCourseDtoReq;
 import com.example.online_learning.dto.response.CourseDtoRes;
 import com.example.online_learning.entity.Course;
 import com.example.online_learning.exception.NotFoundException;
@@ -31,7 +32,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public CourseDtoRes updateCourse(Long courseId, CourseDtoReq dto, CustomUserDetail userDetail) {
+    public CourseDtoRes updateCourse(Long courseId, UpdateCourseDtoReq dto, CustomUserDetail userDetail) {
         Course course = courseRepository.findByCourseId(courseId);
         if (course == null) {
             throw new NotFoundException("Course not found");
@@ -45,6 +46,7 @@ public class CourseServiceImpl implements CourseService {
         if (dto.getDescription() != null) {
             course.setDescription(dto.getDescription());
         }
+        course.setIsPublic(dto.isPublic());
 
         // audit
         course.setCreatedBy(userDetail.getUser());
