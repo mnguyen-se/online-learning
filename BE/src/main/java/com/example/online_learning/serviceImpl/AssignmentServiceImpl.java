@@ -12,6 +12,7 @@ import com.example.online_learning.service.AssignmentService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AssignmentServiceImpl implements AssignmentService {
@@ -59,6 +60,10 @@ public class AssignmentServiceImpl implements AssignmentService {
 
     @Override
     public List<AssignmentDtoRes> findByCourseId(Long courseId) {
-        return assignmentMapper.toDtoRes(assignmentRepository.findByCourse_CourseId(courseId));
+
+        List<Assignment> assignments = assignmentRepository.findByCourse_CourseId(courseId);
+        return assignments.stream()
+                .map(assignmentMapper::toDtoRes)
+                .collect(Collectors.toList());
     }
 }

@@ -29,7 +29,7 @@ public class Assignment {
 
     private Integer maxScore;
 
-    private Integer dueDate;
+    private LocalDateTime dueDate;
 
     private Integer orderIndex;
 }
