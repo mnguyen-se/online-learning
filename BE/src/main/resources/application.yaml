@@ -7,10 +7,10 @@ spring:
     name: online_learning
 
   datasource:
-    url: jdbc:mysql://localhost:3305/online_learning?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root
-    password: 12345
-    driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://mainline.proxy.rlwy.net:50911/railway?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      username: root
+      password: CfdTcHtJtyVSUMUUdFrLETTtuIggNMDu
+      driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
