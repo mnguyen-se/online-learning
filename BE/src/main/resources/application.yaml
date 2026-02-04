@@ -7,9 +7,9 @@ spring:
     name: online_learning
 
   datasource:
-    url: jdbc:mysql://localhost:3306/online_learning?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://mainline.proxy.rlwy.net:50911/railway?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: root
-    password: 123456
+    password: CfdTcHtJtyVSUMUUdFrLETTtuIggNMDu
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -19,12 +19,14 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        # dialect: org.hibernate.dialect.MySQLDialect (OPTIONAL)
 
 logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.tool.schema: DEBUG
     org.springframework.security: DEBUG
+
 
 # =======================
 # GEMINI AI CONFIG

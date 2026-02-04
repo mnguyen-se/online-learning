@@ -20,7 +20,7 @@ public class CourseMapper {
         Course course = new Course();
         course.setTitle(dto.getTitle());
         course.setDescription(dto.getDescription());
-        course.setIsPublic(dto.getIsPublic());
+        course.setIsPublic(false);
         return course;
     }
 
