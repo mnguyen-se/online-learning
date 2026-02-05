@@ -3,6 +3,13 @@ package com.example.online_learning.controller;
 import com.example.online_learning.entity.Feedback;
 import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.AiPromptService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,32 +20,83 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/ai")
 @RequiredArgsConstructor
+@Tag(
+        name = "AI API",
+        description = "Các API AI hỗ trợ học tập: feedback, hint bài học, quiz practice"
+)
 public class AiController {
 
     private final AiPromptService aiPromptService;
 
-    /**
-     * 1️⃣ AI tạo feedback comment cho assignment submission
-     * GV hoặc hệ thống trigger
-     */
+    // ================= AI FEEDBACK FOR SUBMISSION =================
+    @Operation(
+            summary = "AI tạo feedback cho bài nộp",
+            description = """
+                    API cho phép AI tạo feedback tự động cho assignment submission.
+                    
+                    🔐 Chỉ TEACHER hoặc ADMIN được phép gọi.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Tạo feedback thành công",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = Feedback.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy submission"),
+            @ApiResponse(responseCode = "403", description = "Không có quyền truy cập"),
+            @ApiResponse(responseCode = "500", description = "Lỗi khi AI sinh feedback")
+    })
     @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
     @PostMapping("/submissions/{submissionId}/feedback")
     public ResponseEntity<Feedback> generateFeedback(
+            @Parameter(
+                    description = "ID của submission",
+                    example = "100",
+                    required = true
+            )
             @PathVariable Long submissionId,
+
+            @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetail userDetail
     ) {
         return ResponseEntity.ok(
-                aiPromptService.generateFeedbackPrompt(submissionId,userDetail)
+                aiPromptService.generateFeedbackPrompt(submissionId, userDetail)
         );
     }
 
-    /**
-     * 2️⃣ AI tạo hint giải thích bài học
-     * Học sinh dùng khi học lesson
-     */
+    // ================= AI LESSON HINT =================
+    @Operation(
+            summary = "AI tạo hint giải thích bài học",
+            description = """
+                    API cho phép AI tạo hint / gợi ý giải thích cho bài học.
+                    
+                    🔐 STUDENT hoặc ADMIN được phép gọi.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Tạo hint thành công",
+                    content = @Content(
+                            mediaType = MediaType.TEXT_PLAIN_VALUE
+                    )
+            ),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy lesson"),
+            @ApiResponse(responseCode = "403", description = "Không có quyền truy cập"),
+            @ApiResponse(responseCode = "500", description = "Lỗi khi AI sinh hint")
+    })
     @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
     @GetMapping("/lessons/{lessonId}/hint")
     public ResponseEntity<String> generateLessonHint(
+            @Parameter(
+                    description = "ID của lesson",
+                    example = "20",
+                    required = true
+            )
             @PathVariable Long lessonId
     ) {
         return ResponseEntity.ok(
@@ -46,25 +104,50 @@ public class AiController {
         );
     }
 
-    /**
-     * 3️⃣ AI tạo quiz practice dạng HTML
-     * FE render iframe hoặc mở tab mới
-     */
+    // ================= AI QUIZ PRACTICE =================
+    @Operation(
+            summary = "AI tạo quiz practice dạng HTML",
+            description = """
+                    API cho phép AI tạo quiz practice cho bài học dưới dạng HTML.
+                    
+                    📌 Frontend có thể:
+                    - Render trực tiếp
+                    - Mở tab mới
+                    - Nhúng iframe
+                    
+                    🔐 STUDENT hoặc ADMIN được phép gọi.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Tạo quiz practice thành công",
+                    content = @Content(
+                            mediaType = MediaType.TEXT_HTML_VALUE
+                    )
+            ),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy lesson"),
+            @ApiResponse(responseCode = "403", description = "Không có quyền truy cập"),
+            @ApiResponse(responseCode = "500", description = "Lỗi khi AI sinh quiz")
+    })
     @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
     @GetMapping(
             value = "/lessons/{lessonId}/quiz",
             produces = MediaType.TEXT_HTML_VALUE
     )
     public ResponseEntity<String> generateQuizPractice(
+            @Parameter(
+                    description = "ID của lesson",
+                    example = "20",
+                    required = true
+            )
             @PathVariable Long lessonId
     ) {
-        // 1️⃣ Lấy HTML quiz từ service
+
         String quizHtml = aiPromptService.generateQuizPracticePrompt(lessonId);
 
-        // 2️⃣ Tạo link tự động cho iframe
         String quizLink = "http://localhost:8080/api/v1/ai/lessons/" + lessonId + "/quiz";
 
-        // 3️⃣ Ghép HTML hoàn chỉnh bằng nối chuỗi (không dùng formatted)
         String fullHtml = "<!DOCTYPE html>\n" +
                 "<html lang='vi'>\n" +
                 "<head>\n" +
@@ -83,13 +166,10 @@ public class AiController {
                 "        <h1>Quiz Practice</h1>\n" +
                 "        <div class='hint'>\n" +
                 "            <strong>Hướng dẫn:</strong><br>\n" +
-                "            1. Copy hết tất cả code dưới dòng : Chèn quiz HTML do AI tạo ra.<br>\n" +
-                "            2. Dán vào file text, lưu và nhập tên file. Sau đó đổi tên từ .txt sang .html.<br>\n" +
-                "            3. Sau khi dán xong, nhấn \"Nộp Bài và Xem Kết Quả\" để xem điểm.<br>\n" +
-                "            4. Học sinh nên ôn tập các kiến thức liên quan trước khi làm quiz.\n" +
+                "            1. Copy toàn bộ code bên dưới.<br>\n" +
+                "            2. Dán vào file .html và mở bằng trình duyệt.<br>\n" +
+                "            3. Nhấn \"Nộp Bài và Xem Kết Quả\" để xem điểm.\n" +
                 "        </div>\n" +
-                "\n" +
-                "        <!-- Chèn quiz HTML do AI tạo ra -->\n" +
                 quizHtml + "\n" +
                 "    </div>\n" +
                 "</body>\n" +
@@ -97,5 +177,4 @@ public class AiController {
 
         return ResponseEntity.ok(fullHtml);
     }
-
 }

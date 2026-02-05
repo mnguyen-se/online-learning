@@ -23,6 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -43,20 +48,52 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * 1️⃣ API đăng nhập
+     * Trả về JWT token nếu đăng nhập thành công
+     */
+    @Operation(
+            summary = "Đăng nhập hệ thống",
+            description = """
+                    Người dùng đăng nhập bằng username và password.
+                    - Nếu thành công: trả về JWT token
+                    - Nếu sai thông tin: trả về 401
+                    - Nếu tài khoản bị khóa: trả về 403
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Đăng nhập thành công",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = LoginDtoRes.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Sai username hoặc password"
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Tài khoản bị vô hiệu hóa"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Lỗi hệ thống"
+            )
+    })
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDtoReq request) {
         try {
-            // 🔹 Check if user exists
             User user = userRepository.findByUserName(request.getUsername())
                     .orElseThrow(() ->
                             new BadCredentialsException("Invalid username or password"));
 
-            // 🔹 Check if account is active
             if (user.getActive() == null || !user.getActive()) {
                 throw new DisabledException("User account is inactive");
             }
 
-            // 🔹 Authenticate user password
             Authentication authentication =
                     authenticationManager.authenticate(
                             new UsernamePasswordAuthenticationToken(
@@ -65,11 +102,9 @@ public class AuthController {
                             )
                     );
 
-            // 🔹 Get user details
             CustomUserDetail userDetails =
                     (CustomUserDetail) authentication.getPrincipal();
 
-            // 🔹 Generate JWT token
             String token = jwtUtil.generateToken(userDetails);
 
             return ResponseEntity.ok(new LoginDtoRes(token));
@@ -91,6 +126,32 @@ public class AuthController {
         }
     }
 
+    /**
+     * 2️⃣ API đăng ký tài khoản
+     * Mặc định role STUDENT
+     */
+    @Operation(
+            summary = "Đăng ký tài khoản mới",
+            description = """
+                    Tạo tài khoản người dùng mới với role STUDENT.
+                    - Username phải là duy nhất
+                    - Password sẽ được mã hóa trước khi lưu
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Đăng ký thành công"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Dữ liệu không hợp lệ"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Lỗi hệ thống"
+            )
+    })
     @PostMapping("/register")
     public String register(@RequestBody RegisterDtoReq request) {
         User user = new User();
@@ -103,9 +164,8 @@ public class AuthController {
         user.setAddress(request.getAddress());
         user.setDateOfBirth(request.getDateOfBirth());
         user.setActive(true);
+
         userRepository.save(user);
         return "Register success";
     }
 }
-
-
