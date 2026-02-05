@@ -94,7 +94,7 @@ public class AiPromptServiceImpl implements AiPromptService {
                 """.formatted(
                 lesson.getTitle(),
                 lesson.getLessonType(),
-                lesson.getContentUrl()
+                lesson.getTextContent()
         );
 
         String rawJson = geminiService.generateContent(prompt);

@@ -21,7 +21,7 @@ public class AiController {
      * 1️⃣ AI tạo feedback comment cho assignment submission
      * GV hoặc hệ thống trigger
      */
-    @PreAuthorize("hasAnyRole('TEACHER')")
+    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
     @PostMapping("/submissions/{submissionId}/feedback")
     public ResponseEntity<Feedback> generateFeedback(
             @PathVariable Long submissionId,
@@ -36,7 +36,7 @@ public class AiController {
      * 2️⃣ AI tạo hint giải thích bài học
      * Học sinh dùng khi học lesson
      */
-    @PreAuthorize("hasAnyRole('STUDENT')")
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
     @GetMapping("/lessons/{lessonId}/hint")
     public ResponseEntity<String> generateLessonHint(
             @PathVariable Long lessonId
@@ -50,7 +50,7 @@ public class AiController {
      * 3️⃣ AI tạo quiz practice dạng HTML
      * FE render iframe hoặc mở tab mới
      */
-    @PreAuthorize("hasAnyRole('STUDENT')")
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
     @GetMapping(
             value = "/lessons/{lessonId}/quiz",
             produces = MediaType.TEXT_HTML_VALUE

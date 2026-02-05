@@ -2,10 +2,14 @@ package com.example.online_learning.controller;
 
 import com.example.online_learning.dto.request.LessonDtoReq;
 import com.example.online_learning.service.LessonService;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/lessons")
@@ -45,5 +49,17 @@ public class LessonController {
     public ResponseEntity<?> getAllLessonsIsNotDeleted(){
         return ResponseEntity.ok().body(lessonService.findLessonByPublicTrue());
     }
+
+    @PostMapping(
+            value = "/lessons/{lessonId}/upload-video",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<?> uploadVideo(
+            @PathVariable Long lessonId,
+            @RequestPart("file") MultipartFile file){
+        String videoUrl = lessonService.uploadFile(lessonId, file);
+        return ResponseEntity.ok(videoUrl);
+    }
+
 
 }

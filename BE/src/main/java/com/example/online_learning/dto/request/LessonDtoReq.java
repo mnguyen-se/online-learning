@@ -20,7 +20,10 @@ public class LessonDtoReq {
     private LessonType lessonType;
 
     @Column(columnDefinition = "TEXT")
-    private String contentUrl;
+    private String textContent;
+
+    @Column(length = 500)
+    private String videoUrl;
 
     private Long moduleId;
 

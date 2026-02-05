@@ -22,7 +22,10 @@ public class LessonDtoRes {
     private LessonType lessonType;
 
     @Column(columnDefinition = "TEXT")
-    private String contentUrl;
+    private String textContent;
+
+    @Column(length = 500)
+    private String videoUrl;
 
     @Column(nullable = false)
     private Integer orderIndex;
