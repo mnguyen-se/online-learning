@@ -1,39 +1,23 @@
 spring:
-  cloudinary:
-    cloud-name: ${CLOUDINARY_CLOUD_NAME}
-    api-key: ${CLOUDINARY_API_KEY}
-    api-secret: ${CLOUDINARY_API_SECRET}
-
-  servlet:
-    multipart:
-      max-file-size: 200MB
-      max-request-size: 200MB
-
-
-  output:
-    ansi:
-      enabled: always
-
   application:
     name: online_learning
 
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: ${DB_DRIVER:com.mysql.cj.jdbc.Driver}
+    url: ${DB_URL:jdbc:h2:mem:testdb}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+    ##-----------DATABASE LOCAL-------------############
+    #      url: jdbc:mysql://localhost:3306/online_learning
+    #        ?useSSL=false
+    #        &allowPublicKeyRetrieval=true
+    #        &serverTimezone=Asia/Ho_Chi_Minh
+    #        username: root
+    #        password: 123456
+    #        driver-class-name: com.mysql.cj.jdbc.Driver
 
-      ##-----------DATABASE LOCAL-------------############
-#      url: jdbc:mysql://localhost:3306/online_learning
-#        ?useSSL=false
-#        &allowPublicKeyRetrieval=true
-#        &serverTimezone=Asia/Ho_Chi_Minh
-#        username: root
-#        password: 123456
-#        driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
-    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
@@ -41,26 +25,38 @@ spring:
       hibernate:
         format_sql: true
 
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 200MB
+
+  output:
+    ansi:
+      enabled: always
+
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME:test}
+    api-key: ${CLOUDINARY_API_KEY:test}
+    api-secret: ${CLOUDINARY_API_SECRET:test}
+
 logging:
   level:
     org.hibernate.SQL: DEBUG
-    org.hibernate.tool.schema: DEBUG
     org.springframework.security: DEBUG
 
 # =======================
 # GEMINI AI CONFIG
 # =======================
 gemini:
-  api-key: ${GEMINI_API_KEY}
+  api-key: ${GEMINI_API_KEY:test}
   model: gemini-flash-latest
   base-url: https://generativelanguage.googleapis.com/v1beta/models/
-
   timeout: 30s
   max-tokens: 2048
   temperature: 0.7
 
 # =======================
-# AI PROMPT VERSIONING (optional nhưng rất nên có)
+# AI PROMPT VERSIONING
 # =======================
 ai:
   prompt:
