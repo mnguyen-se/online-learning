@@ -36,6 +36,7 @@ public class CourseMapper {
         dto.setCreatedAt(course.getCreatedAt());
         dto.setPublic(course.getIsPublic());
         dto.setCreatedBy(course.getCreatedBy());
+        dto.setTeacher(course.getTeacher());
         dto.setModules(new ArrayList<>());
         dto.setModules(moduleMapper.toDto(course.getModules()));
         

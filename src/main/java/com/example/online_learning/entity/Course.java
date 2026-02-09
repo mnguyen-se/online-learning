@@ -35,6 +35,10 @@ public class Course {
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
+    @ManyToOne
+    @JoinColumn(name = "teacher_id")
+    private User teacher;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
