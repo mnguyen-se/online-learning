@@ -1,13 +1,18 @@
 package com.example.online_learning;
 
+import com.example.online_learning.security.JwtFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 
 @SpringBootTest
+@ActiveProfiles("test")
 class OnlineLearningApplicationTests {
 
-	@Test
+
+
+    @Test
 	void contextLoads() {
 	}
 
