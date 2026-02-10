@@ -18,7 +18,7 @@ spring:
     name: online_learning
 
   datasource:
-      url: ${DB_URL}?useSSL=true\&allowPublicKeyRetrieval=true\&serverTimezone=UTC\&connectTimeout=30000\&socketTimeout=30000
+      url: ${DB_URL}?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC&connectTimeout=30000&socketTimeout=30000
       username: ${DB_USERNAME}
       password: ${DB_PASSWORD}
       driver-class-name: com.mysql.cj.jdbc.Driver
