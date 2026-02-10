@@ -53,4 +53,4 @@ jobs:
             Regards,  
             GitHub Actions 🤖
           to: nguyennmse184571@fpt.edu.vn
-          from: GitHub CI/CD <minhnguyen08112004@gmail.com>
+          from: GitHub CI/CD <${{ secrets.EMAIL_USERNAME }}>
