@@ -10,10 +10,9 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 class OnlineLearningApplicationTests {
 
-
-
-    @Test
+	@Test
 	void contextLoads() {
 	}
 
 }
+
