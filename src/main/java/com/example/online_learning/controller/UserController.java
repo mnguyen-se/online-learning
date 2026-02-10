@@ -30,9 +30,6 @@ public class UserController {
         this.userService = userService;
     }
 
-    /**
-     * 1️⃣ Lấy thông tin user theo username
-     */
     @Operation(
             summary = "Lấy thông tin người dùng",
             description = "Lấy thông tin chi tiết của người dùng theo username"
@@ -55,9 +52,6 @@ public class UserController {
         return userService.findUserByUserName(username);
     }
 
-    /**
-     * 2️⃣ Lấy danh sách toàn bộ user
-     */
     @Operation(
             summary = "Lấy danh sách người dùng",
             description = "Lấy toàn bộ user trong hệ thống"
@@ -70,9 +64,7 @@ public class UserController {
         return userService.getAll();
     }
 
-    /**
-     * 3️⃣ Tạo user mới
-     */
+
     @Operation(
             summary = "Tạo người dùng mới",
             description = "Tạo user mới (username, password, role, thông tin cá nhân)"
@@ -88,9 +80,6 @@ public class UserController {
         return userService.createUser(request);
     }
 
-    /**
-     * 4️⃣ Cập nhật thông tin user
-     */
     @Operation(
             summary = "Cập nhật người dùng",
             description = "Cập nhật thông tin user theo userId"
@@ -107,9 +96,6 @@ public class UserController {
         return userService.updateUser(userId, request);
     }
 
-    /**
-     * 5️⃣ Xóa user (ADMIN)
-     */
     @Operation(
             summary = "Xóa người dùng",
             description = "Xóa user khỏi hệ thống (chỉ ADMIN)"

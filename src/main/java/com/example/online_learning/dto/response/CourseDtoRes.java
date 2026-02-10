@@ -25,6 +25,8 @@ public class CourseDtoRes {
 
     private User createdBy;
 
+    private User teacher;
+
     private LocalDateTime createdAt;
 
     private boolean isPublic;

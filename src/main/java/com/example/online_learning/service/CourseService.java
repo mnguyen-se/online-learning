@@ -12,4 +12,5 @@ public interface CourseService {
     public CourseDtoRes updateCourse(Long courseId, UpdateCourseDtoReq dto, CustomUserDetail userDetail);
     public List<CourseDtoRes> getAllCourses();
     public List<CourseDtoRes> findCoursesByPublicTrue();
+    public List<CourseDtoRes> getMyCourses(CustomUserDetail userDetail);
 }

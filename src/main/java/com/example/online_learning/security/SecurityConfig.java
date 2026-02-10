@@ -2,6 +2,7 @@ package com.example.online_learning.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -29,19 +30,28 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http)
             throws Exception {
 
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        // 🔓 SWAGGER
                         .requestMatchers(
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**",
                                 "/swagger-ui.html",
-                                "/api/v1/users/create",
-                                "/auth/**").permitAll()
+                                "/v3/api-docs/**"
+                        ).permitAll()
+
+                        // 🔓 AUTH
+                        .requestMatchers(
+                                "/api/v1/auth/**",
+                                "/auth/**",
+                                "/api/v1/users/create"
+                        ).permitAll()
+
+                        // 🔒 OTHERS
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter,

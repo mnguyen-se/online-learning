@@ -23,4 +23,6 @@ public class UpdateCourseDtoReq {
     private String description;
 
     private boolean isPublic;
+    
+    private Long teacherId;
 }

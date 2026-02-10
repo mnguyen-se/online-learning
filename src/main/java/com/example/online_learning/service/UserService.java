@@ -8,6 +8,7 @@ import java.util.List;
 public interface UserService {
     UserDtoRes findUserByUserName(String username);
     List<UserDtoRes> getAll();
+    List<UserDtoRes> getAllTeachers();
     UserDtoRes createUser(CreateUserDtoReq request);
     UserDtoRes updateUser(Long userId, UpdateUserDtoReq request);
     void deleteUser(Long userId);

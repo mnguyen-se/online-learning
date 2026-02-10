@@ -3,8 +3,10 @@ package com.example.online_learning.controller;
 import com.example.online_learning.dto.request.CourseDtoReq;
 import com.example.online_learning.dto.request.UpdateCourseDtoReq;
 import com.example.online_learning.dto.response.CourseDtoRes;
+import com.example.online_learning.dto.response.UserDtoRes;
 import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.CourseService;
+import com.example.online_learning.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -27,9 +29,11 @@ import java.util.List;
 public class CourseController {
 
     private final CourseService courseService;
+    private final UserService userService;
 
-    public CourseController(CourseService courseService) {
+    public CourseController(CourseService courseService, UserService userService) {
         this.courseService = courseService;
+        this.userService = userService;
     }
 
     // ================= CREATE COURSE =================
@@ -129,5 +133,45 @@ public class CourseController {
     @GetMapping("/active")
     public ResponseEntity<List<CourseDtoRes>> getActiveCourses() {
         return ResponseEntity.ok(courseService.findCoursesByPublicTrue());
+    }
+
+    // ================= GET ALL TEACHERS =================
+    @Operation(
+            summary = "Lấy danh sách giáo viên",
+            description = """
+                    API dùng để lấy danh sách tất cả giáo viên (users có role TEACHER).
+                    
+                    🔐 Chỉ COURSE_MANAGER hoặc ADMIN mới được phép.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lấy danh sách giáo viên thành công"),
+            @ApiResponse(responseCode = "403", description = "Không có quyền truy cập")
+    })
+    @PreAuthorize("hasAnyRole('COURSE_MANAGER','ADMIN')")
+    @GetMapping("/teachers")
+    public ResponseEntity<List<UserDtoRes>> getAllTeachers() {
+        return ResponseEntity.ok(userService.getAllTeachers());
+    }
+
+    @Operation(
+            summary = "Lấy danh sách khóa học của giáo viên",
+            description = """
+                    API dùng để Teacher xem các khóa học mà mình đang quản lý.
+                    
+                    🔐 Chỉ TEACHER mới được phép.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lấy danh sách khóa học thành công"),
+            @ApiResponse(responseCode = "403", description = "Không có quyền truy cập")
+    })
+    @PreAuthorize("hasRole('TEACHER')")
+    @GetMapping("/my-courses")
+    public ResponseEntity<List<CourseDtoRes>> getMyCourses(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetail userDetail
+    ) {
+        return ResponseEntity.ok(courseService.getMyCourses(userDetail));
     }
 }

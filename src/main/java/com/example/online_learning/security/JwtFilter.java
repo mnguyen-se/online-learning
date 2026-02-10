@@ -26,21 +26,20 @@ public class JwtFilter extends OncePerRequestFilter {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/auth");
+    }
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
-
-        String path = request.getRequestURI();
-
-        if (path.startsWith("/swagger-ui")
-                || path.startsWith("/v3/api-docs")
-                || path.startsWith("/auth")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
 
         String authHeader = request.getHeader("Authorization");
 
@@ -52,7 +51,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 String username = jwtUtil.extractUsername(token);
 
-                // 👉 chỉ load DB để check active (OK)
                 UserDetails userDetails =
                         userDetailsService.loadUserByUsername(username);
 
@@ -62,11 +60,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     return;
                 }
 
-
-
-                // 🔥 PARSE ROLE TỪ JWT
                 List<String> roles = jwtUtil.extractRoles(token);
-
 
                 List<SimpleGrantedAuthority> authorities =
                         roles.stream()
@@ -75,13 +69,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                userDetails,          // principal
+                                userDetails,
                                 null,
-                                authorities        // role từ JWT
+                                authorities
                         );
-
-                System.out.println("JWT roles = " + roles);
-                System.out.println("Authorities = " + authorities);
 
                 SecurityContextHolder.getContext()
                         .setAuthentication(authentication);

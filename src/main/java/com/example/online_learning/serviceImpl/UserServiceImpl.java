@@ -1,5 +1,6 @@
 package com.example.online_learning.serviceImpl;
 
+import com.example.online_learning.constants.UserRole;
 import com.example.online_learning.dto.request.CreateUserDtoReq;
 import com.example.online_learning.dto.request.UpdateUserDtoReq;
 import com.example.online_learning.dto.response.UserDtoRes;
@@ -37,6 +38,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDtoRes> getAll() {
         return userRepository.findAll()
+                .stream()
+                .map(userMapper::toDtoReq)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserDtoRes> getAllTeachers() {
+        return userRepository.findByRole(UserRole.TEACHER)
                 .stream()
                 .map(userMapper::toDtoReq)
                 .collect(Collectors.toList());

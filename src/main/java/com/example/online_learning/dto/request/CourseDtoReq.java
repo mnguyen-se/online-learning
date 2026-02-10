@@ -16,4 +16,5 @@ public class CourseDtoReq {
     @Column(columnDefinition = "TEXT")
     private String description;
     
+    private Long teacherId;
 }

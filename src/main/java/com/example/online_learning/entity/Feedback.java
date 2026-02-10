@@ -5,10 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "feedback")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,17 +21,28 @@ public class Feedback {
     private Long feedbackId;
 
     @ManyToOne
-    @JoinColumn(name = "submission_id", nullable = false)
+    @JoinColumn(name = "submission_id")
     private AssignmentSubmission submission;
+
+    @ManyToOne
+    @JoinColumn(name = "enrollment_id")
+    private Enrollment enrollment;
 
     @ManyToOne
     @JoinColumn(name = "teacher_id", nullable = false)
     private User teacher;
 
-    @Column(columnDefinition = "TEXT")
+    @ManyToOne
+    @JoinColumn(name = "student_id", nullable = false)
+    private User student;
+
+    @ManyToOne
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
+
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String comment;
 
-    private Integer scoreGiven;
-
+    @CreationTimestamp
     private LocalDateTime createdAt;
 }
