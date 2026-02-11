@@ -2,7 +2,9 @@ name: Java CI/CD
 
 on:
   push:
-    branches: [ "dev-be-main" ]
+    branches:
+      - dev-be-main
+      - be-*
   pull_request:
 
 jobs:
