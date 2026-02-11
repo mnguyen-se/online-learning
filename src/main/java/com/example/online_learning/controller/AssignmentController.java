@@ -1,7 +1,5 @@
 package com.example.online_learning.controller;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 import com.example.online_learning.dto.request.AssignmentDtoReq;
 import com.example.online_learning.dto.request.SubmitAnswersDtoReq;
@@ -11,10 +9,6 @@ import com.example.online_learning.service.AssignmentSubmissionService;
 import com.example.online_learning.service.FeedbackService;
 import com.example.online_learning.service.QuestionService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,13 +46,12 @@ public class AssignmentController {
             description = "COURSE_MANAGER / ADMIN tạo assignment cho một khóa học"
     )
     @PreAuthorize("hasAnyRole('COURSE_MANAGER','ADMIN')")
-    @PostMapping("/courses/{courseId}/assignments")
+    @PostMapping("/courses/assignments")
     public ResponseEntity<?> createAssignment(
-            @PathVariable Long courseId,
-            @jakarta.validation.Valid @RequestBody AssignmentDtoReq request
+             @RequestBody AssignmentDtoReq request
     ) {
         return ResponseEntity.ok(
-                assignmentService.createAssignment(courseId, request)
+                assignmentService.createAssignment(request)
         );
     }
 

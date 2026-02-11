@@ -22,6 +22,7 @@ public class LearningProcessMapper {
                 .remainingTasks(lp.getTotalTasks() - lp.getCompletedTasks())
                 .progressPercent(percent)
                 .status(lp.getStatus())
+                .progressPercent(percent)
                 .completed(lp.getStatus() == ProgressStatus.DONE)
                 .lastUpdated(lp.getLastUpdated())
                 .build();

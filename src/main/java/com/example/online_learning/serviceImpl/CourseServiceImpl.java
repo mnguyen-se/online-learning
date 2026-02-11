@@ -12,6 +12,7 @@ import com.example.online_learning.repository.CourseRepository;
 import com.example.online_learning.repository.UserRepository;
 import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.CourseService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -91,19 +92,27 @@ public class CourseServiceImpl implements CourseService {
 
 
     @Override
+    @Cacheable(value = "courses", key = "'all'")
     public List<CourseDtoRes> getAllCourses() {
         return courseMapper.toDto(courseRepository.findAll());
     }
 
+
     @Override
+    @Cacheable(value = "courses", key = "'public'")
     public List<CourseDtoRes> findCoursesByPublicTrue() {
         return courseMapper.toDto(courseRepository.findAllByIsPublicTrue());
     }
 
+
     @Override
+    @Cacheable(value = "courses", key = "'teacher_' + #userDetail.user.userId")
     public List<CourseDtoRes> getMyCourses(CustomUserDetail userDetail) {
+
         User teacher = userDetail.getUser();
         List<Course> courses = courseRepository.findByTeacher(teacher);
+
         return courseMapper.toDto(courses);
     }
+
 }

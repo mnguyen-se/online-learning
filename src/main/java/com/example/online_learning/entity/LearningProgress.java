@@ -37,6 +37,8 @@ public class LearningProgress {
     @Column(name = "completed_tasks", nullable = false)
     private int completedTasks;
 
+    private double progressPercent;
+
     @Enumerated(EnumType.STRING)
     private ProgressStatus status;
 

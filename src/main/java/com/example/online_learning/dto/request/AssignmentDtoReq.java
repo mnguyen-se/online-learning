@@ -12,12 +12,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class AssignmentDtoReq {
 
-    @NotBlank(message = "Title is required")
     private String title;
-    
+    private Long courseId;
     private String description;
     private Integer maxScore;
     private LocalDateTime dueDate;
-    private Integer orderIndex;
 }
 

@@ -28,25 +28,21 @@ public class AssignmentServiceImpl implements AssignmentService {
     }
 
     @Override
-    public AssignmentDtoRes createAssignment(Long courseId, AssignmentDtoReq req) {
+    public AssignmentDtoRes createAssignment(AssignmentDtoReq req) {
 
-        Course course = courseRepository.findById(courseId)
+        System.out.println("Course ID: " + req.getCourseId());
+        Course course = courseRepository.findById(req.getCourseId())
                 .orElseThrow(() ->
-                        new NotFoundException("Course not found with id " + courseId)
+                        new NotFoundException("Course not found with id " + req.getCourseId())
                 );
 
-        if (req.getTitle() == null || req.getTitle().trim().isEmpty()) {
+        if (req.getTitle() == null) {
             throw new IllegalArgumentException("Title cannot be null or empty");
         }
 
-        Assignment assignment = Assignment.builder()
-                .course(course)
-                .title(req.getTitle().trim())
-                .description(req.getDescription())
-                .maxScore(req.getMaxScore())
-                .dueDate(req.getDueDate())
-                .orderIndex(req.getOrderIndex())
-                .build();
+        Assignment assignment = assignmentMapper.toEntity(req);
+        assignment.setCourse(course);
+        assignment.setOrderIndex(assignmentRepository.findMaxOrderIndexByCourse_CourseId(req.getCourseId()) + 1);
         assignmentRepository.save(assignment);
         return assignmentMapper.toDtoRes(assignment);
     }

@@ -33,10 +33,16 @@ public class LearningProcessServiceImpl implements LearningProcessService {
             return;
         }
 
+        int totalTasks =
+                (int) lessonRepository.countLessonsByCourseId(courseId)
+                        + (int) assignmentRepository.countByCourse_CourseId(courseId);
+
         LearningProgress progress = LearningProgress.builder()
                 .user(userRepository.getReferenceById(userDetail.getUser().getUserId()))
                 .course(courseRepository.getReferenceById(courseId))
                 .completedTasks(0)
+                .totalTasks(totalTasks)
+                .progressPercent(0)
                 .status(ProgressStatus.IN_PROGRESS)
                 .build();
 
@@ -47,19 +53,21 @@ public class LearningProcessServiceImpl implements LearningProcessService {
     /**
      * +1 progress khi hoàn thành lesson / assignment
      */
+    @Transactional
     @Override
     public void increaseProgress(Long courseId, CustomUserDetail userDetail) {
 
-        LearningProgress progress = learningProgressRepository
-                .findByUser_UserIdAndCourse_CourseId(userDetail.getUser().getUserId(), courseId)
-                .orElseThrow(() ->
-                        new IllegalStateException("Learning progress not found")
-                );
+        int updated = learningProgressRepository.increaseProgress(
+                userDetail.getUser().getUserId(),
+                courseId
+        );
 
-        progress.setCompletedTasks(progress.getCompletedTasks() + 1);
-
-        learningProgressRepository.save(progress);
+        if (updated == 0) {
+            throw new IllegalStateException("Learning progress not found");
+        }
     }
+
+
 
 
     /**

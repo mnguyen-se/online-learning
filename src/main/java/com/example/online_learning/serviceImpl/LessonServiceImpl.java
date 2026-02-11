@@ -14,6 +14,7 @@ import com.example.online_learning.repository.LessonRepository;
 import com.example.online_learning.service.LessonService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.io.IOException;
 import java.util.List;
@@ -102,28 +103,33 @@ public class LessonServiceImpl implements LessonService {
     }
 
     // ================= GET ALL =================
+    @Cacheable(value = "lessons", key = "'all'")
     @Override
     public List<LessonDtoRes> getAllLessons() {
-
         List<Lesson> lessons = lessonRepository.findAll();
         if (lessons.isEmpty()) {
             throw new NotFoundException("Không có lesson nào");
         }
-
         return lessonMapper.toDto(lessons);
     }
 
+
+
     // ================= GET PUBLIC =================
     @Override
+    @Cacheable(value = "lessons", key = "'public'")
     public List<LessonDtoRes> findLessonByPublicTrue() {
 
         List<Lesson> lessons = lessonRepository.findAllByIsPublicTrue();
+
         if (lessons.isEmpty()) {
             throw new NotFoundException("Không có lesson public nào");
         }
 
         return lessonMapper.toDto(lessons);
     }
+
+
 
     // ================= UPLOAD VIDEO =================
     @Override

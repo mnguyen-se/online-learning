@@ -1,5 +1,6 @@
 package com.example.online_learning.mapper;
 
+import com.example.online_learning.dto.request.AssignmentDtoReq;
 import com.example.online_learning.dto.response.AssignmentDtoRes;
 import com.example.online_learning.entity.Assignment;
 import org.springframework.stereotype.Component;
@@ -29,5 +30,14 @@ public class AssignmentMapper {
             dtos.add(dto);
         }
         return dtos;
+    }
+
+    public Assignment toEntity(AssignmentDtoReq dto){
+        Assignment a = new Assignment();
+        a.setTitle(dto.getTitle());
+        a.setDescription(dto.getDescription());
+        a.setDueDate(dto.getDueDate());
+        a.setMaxScore(dto.getMaxScore());
+        return a;
     }
 }
