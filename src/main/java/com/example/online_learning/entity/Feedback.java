@@ -43,6 +43,9 @@ public class Feedback {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String comment;
 
+    @Column(columnDefinition = "TEXT")
+    private String gradedContent;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 }

@@ -19,4 +19,6 @@ public class EnrolledCourseDtoRes {
     private LocalDateTime courseCreatedAt;
     private EnrollmentStatus enrollmentStatus;
     private LocalDateTime enrolledAt;
+    private Long teacherId;
+    private String teacherName;
 }

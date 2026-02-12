@@ -3,15 +3,20 @@ package com.example.online_learning.serviceImpl;
 import com.example.online_learning.constants.SubmissionStatus;
 import com.example.online_learning.dto.request.SubmitAnswersDtoReq;
 import com.example.online_learning.dto.response.AnswerDetailDtoRes;
+import com.example.online_learning.dto.response.FeedbackDtoRes;
 import com.example.online_learning.dto.response.QuizResultDtoRes;
+import com.example.online_learning.dto.response.SubmissionDetailDtoRes;
+import com.example.online_learning.dto.response.SubmissionListItemDtoRes;
 import com.example.online_learning.entity.Assignment;
 import com.example.online_learning.entity.AssignmentSubmission;
+import com.example.online_learning.entity.Feedback;
 import com.example.online_learning.entity.Question;
 import com.example.online_learning.entity.StudentAnswer;
 import com.example.online_learning.entity.User;
 import com.example.online_learning.exception.NotFoundException;
 import com.example.online_learning.repository.AssignmentRepository;
 import com.example.online_learning.repository.AssignmentSubmissionRepository;
+import com.example.online_learning.repository.FeedbackRepository;
 import com.example.online_learning.repository.QuestionRepository;
 import com.example.online_learning.repository.StudentAnswerRepository;
 import com.example.online_learning.repository.UserRepository;
@@ -35,6 +40,7 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
     private final QuestionRepository questionRepository;
     private final StudentAnswerRepository studentAnswerRepository;
     private final LearningProcessService learningProcessService;
+    private final FeedbackRepository feedbackRepository;
     private static final double COMPLETION_THRESHOLD = 70.0;
 
     public AssignmentSubmissionServiceImpl(
@@ -43,13 +49,15 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
             UserRepository userRepo,
             QuestionRepository questionRepository,
             StudentAnswerRepository studentAnswerRepository,
-            LearningProcessService learningProcessService) {
+            LearningProcessService learningProcessService,
+            FeedbackRepository feedbackRepository) {
         this.submissionRepo = submissionRepo;
         this.assignmentRepo = assignmentRepo;
         this.userRepo = userRepo;
         this.questionRepository = questionRepository;
         this.studentAnswerRepository = studentAnswerRepository;
         this.learningProcessService = learningProcessService;
+        this.feedbackRepository = feedbackRepository;
     }
 
     public void submit(Long assignmentId, CustomUserDetail userDetail, String content) {
@@ -83,6 +91,10 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
             throw new NotFoundException("No questions found for this assignment");
         }
 
+        if (request.getAnswers() == null || request.getAnswers().isEmpty()) {
+            throw new RuntimeException("Danh sách đáp án không được để trống");
+        }
+
         Map<Long, Question> questionMap = questions.stream()
                 .collect(Collectors.toMap(Question::getQuestionId, q -> q));
 
@@ -90,109 +102,71 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 .findByAssignment_AssignmentIdAndStudent_UserId(assignmentId, student.getUserId())
                 .orElse(null);
 
-        if (submission == null) {
-            submission = new AssignmentSubmission();
-            submission.setAssignment(assignment);
-            submission.setStudent(student);
-            submission.setSubmittedAt(LocalDateTime.now());
-        } else {
-            studentAnswerRepository.deleteBySubmission_SubmissionId(submission.getSubmissionId());
+        if (submission != null) {
+            throw new RuntimeException("Bạn đã nộp bài rồi");
         }
 
+        submission = new AssignmentSubmission();
+        submission.setAssignment(assignment);
+        submission.setStudent(student);
+        submission.setSubmittedAt(LocalDateTime.now());
+
         List<StudentAnswer> studentAnswers = new ArrayList<>();
-        int totalScore = 0;
-        int correctCount = 0;
-        int wrongCount = 0;
+        List<Long> notFoundQuestionIds = new ArrayList<>();
 
         for (SubmitAnswersDtoReq.AnswerDto answerDto : request.getAnswers()) {
             Question question = questionMap.get(answerDto.getQuestionId());
             if (question == null) {
+                notFoundQuestionIds.add(answerDto.getQuestionId());
                 continue;
             }
 
-            String studentAnswerStr = answerDto.getAnswer().toUpperCase().trim();
-            String correctAnswerStr = question.getCorrectAnswer().toUpperCase().trim();
-            boolean isCorrect = studentAnswerStr.equals(correctAnswerStr);
-
-            int pointsEarned = isCorrect ? (question.getPoints() != null ? question.getPoints() : 1) : 0;
-            totalScore += pointsEarned;
-
-            if (isCorrect) {
-                correctCount++;
-            } else {
-                wrongCount++;
+            String studentAnswerStr = answerDto.getAnswer() != null ? answerDto.getAnswer().toUpperCase().trim() : null;
+            if (studentAnswerStr == null || studentAnswerStr.isEmpty()) {
+                throw new RuntimeException("Đáp án không được để trống cho questionId: " + answerDto.getQuestionId());
             }
 
             StudentAnswer studentAnswer = StudentAnswer.builder()
                     .submission(submission)
                     .question(question)
                     .studentAnswer(studentAnswerStr)
-                    .isCorrect(isCorrect)
-                    .pointsEarned(pointsEarned)
+                    .isCorrect(null)
+                    .pointsEarned(null)
                     .build();
 
             studentAnswers.add(studentAnswer);
+        }
+
+        if (!notFoundQuestionIds.isEmpty()) {
+            throw new NotFoundException("Không tìm thấy câu hỏi với các ID: " + notFoundQuestionIds);
+        }
+
+        if (studentAnswers.isEmpty()) {
+            throw new RuntimeException("Không có đáp án hợp lệ nào được tạo. Vui lòng kiểm tra lại questionId trong request.");
+        }
+
+        submission.setStatus(SubmissionStatus.SUBMITTED);
+        submission.setScore(null);
+        submission = submissionRepo.save(submission);
+
+        List<StudentAnswer> savedAnswers = studentAnswerRepository.saveAll(studentAnswers);
+        
+        if (savedAnswers.size() != studentAnswers.size()) {
+            throw new RuntimeException("Không thể lưu tất cả đáp án. Đã lưu: " + savedAnswers.size() + "/" + studentAnswers.size());
         }
 
         int maxScore = questions.stream()
                 .mapToInt(q -> q.getPoints() != null ? q.getPoints() : 1)
                 .sum();
 
-        double percentage = maxScore > 0 ? (totalScore * 100.0 / maxScore) : 0.0;
-        
-        SubmissionStatus previousStatus = submission.getStatus();
-        boolean wasCompleted = previousStatus == SubmissionStatus.COMPLETED;
-        
-        if (percentage >= COMPLETION_THRESHOLD) {
-            submission.setStatus(SubmissionStatus.COMPLETED);
-            
-            if (!wasCompleted) {
-                Long courseId = assignment.getCourse().getCourseId();
-                try {
-                    learningProcessService.increaseProgress(courseId, userDetail);
-                } catch (Exception e) {
-                }
-            }
-        } else {
-            submission.setStatus(SubmissionStatus.GRADED);
-        }
-
-        submission.setScore(totalScore);
-        submission = submissionRepo.save(submission);
-
-        studentAnswerRepository.saveAll(studentAnswers);
-
-        List<AnswerDetailDtoRes> details = studentAnswers.stream()
-                .map(sa -> {
-                    Question q = sa.getQuestion();
-                    return AnswerDetailDtoRes.builder()
-                            .questionId(q.getQuestionId())
-                            .questionText(q.getQuestionText())
-                            .optionA(q.getOptionA())
-                            .optionB(q.getOptionB())
-                            .optionC(q.getOptionC())
-                            .optionD(q.getOptionD())
-                            .studentAnswer(sa.getStudentAnswer())
-                            .correctAnswer(q.getCorrectAnswer())
-                            .isCorrect(sa.getIsCorrect())
-                            .points(q.getPoints() != null ? q.getPoints() : 1)
-                            .pointsEarned(sa.getPointsEarned())
-                            .build();
-                })
-                .collect(Collectors.toList());
-
-        double roundedPercentage = Math.round(percentage * 100.0) / 100.0;
-
         return QuizResultDtoRes.builder()
                 .submissionId(submission.getSubmissionId())
                 .assignmentId(assignmentId)
-                .totalQuestions(questions.size())
-                .correctAnswers(correctCount)
-                .wrongAnswers(wrongCount)
-                .score(totalScore)
+                .score(null)
                 .maxScore(maxScore)
-                .percentage(roundedPercentage)
-                .details(details)
+                .percentage(null)
+                .details(null)
+                .feedbacks(null)
                 .build();
     }
 
@@ -209,14 +183,43 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 .findByAssignment_AssignmentIdAndStudent_UserId(assignmentId, student.getUserId())
                 .orElseThrow(() -> new NotFoundException("Submission not found for this assignment"));
 
-        List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignmentId);
-        List<StudentAnswer> studentAnswers = studentAnswerRepository.findBySubmission_SubmissionId(submission.getSubmissionId());
+        if (submission.getStatus() == SubmissionStatus.SUBMITTED) {
+            throw new RuntimeException("Bài làm đang chờ giáo viên chấm. Vui lòng chờ thông báo.");
+        }
 
+        if (submission.getStatus() != SubmissionStatus.GRADED && submission.getStatus() != SubmissionStatus.COMPLETED) {
+            throw new RuntimeException("Kết quả chưa sẵn sàng.");
+        }
+
+        List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignmentId);
+        List<Feedback> feedbacks = feedbackRepository.findBySubmission_SubmissionId(submission.getSubmissionId());
+
+        int maxScore = questions.stream()
+                .mapToInt(q -> q.getPoints() != null ? q.getPoints() : 1)
+                .sum();
+
+        double percentage = maxScore > 0 && submission.getScore() != null 
+                ? (submission.getScore() * 100.0 / maxScore) 
+                : 0.0;
+
+        List<FeedbackDtoRes> feedbackDtos = feedbacks.stream()
+                .map(feedback -> FeedbackDtoRes.builder()
+                        .feedbackId(feedback.getFeedbackId())
+                        .courseId(feedback.getCourse().getCourseId())
+                        .courseTitle(feedback.getCourse().getTitle())
+                        .studentId(feedback.getStudent().getUserId())
+                        .studentName(feedback.getStudent().getName())
+                        .teacherId(feedback.getTeacher().getUserId())
+                        .teacherName(feedback.getTeacher().getName())
+                        .comment(feedback.getComment())
+                        .gradedContent(feedback.getGradedContent())
+                        .createdAt(feedback.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<StudentAnswer> studentAnswers = studentAnswerRepository.findBySubmission_SubmissionId(submission.getSubmissionId());
         Map<Long, StudentAnswer> answerMap = studentAnswers.stream()
                 .collect(Collectors.toMap(sa -> sa.getQuestion().getQuestionId(), sa -> sa));
-
-        int correctCount = 0;
-        int wrongCount = 0;
 
         List<AnswerDetailDtoRes> details = new ArrayList<>();
         for (Question question : questions) {
@@ -225,13 +228,82 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 continue;
             }
 
-            if (studentAnswer.getIsCorrect()) {
-                correctCount++;
-            } else {
-                wrongCount++;
+            details.add(AnswerDetailDtoRes.builder()
+                    .questionId(question.getQuestionId())
+                    .questionText(question.getQuestionText())
+                    .optionA(question.getOptionA())
+                    .optionB(question.getOptionB())
+                    .optionC(question.getOptionC())
+                    .optionD(question.getOptionD())
+                    .studentAnswer(studentAnswer.getStudentAnswer())
+                    .correctAnswer(question.getCorrectAnswer())
+                    .isCorrect(studentAnswer.getIsCorrect())
+                    .points(question.getPoints() != null ? question.getPoints() : 1)
+                    .pointsEarned(studentAnswer.getPointsEarned())
+                    .build());
+        }
+
+        return QuizResultDtoRes.builder()
+                .submissionId(submission.getSubmissionId())
+                .assignmentId(assignmentId)
+                .score(submission.getScore())
+                .maxScore(maxScore)
+                .percentage(Math.round(percentage * 100.0) / 100.0)
+                .details(details)
+                .feedbacks(feedbackDtos)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SubmissionListItemDtoRes> getSubmissionsByAssignment(Long assignmentId) {
+        Assignment assignment = assignmentRepo.findById(assignmentId)
+                .orElseThrow(() -> new NotFoundException("Assignment not found with id: " + assignmentId));
+
+        List<AssignmentSubmission> submissions = submissionRepo.findByAssignment_AssignmentId(assignmentId);
+
+        int maxScore = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignmentId).stream()
+                .mapToInt(q -> q.getPoints() != null ? q.getPoints() : 1)
+                .sum();
+
+        return submissions.stream()
+                .map(submission -> SubmissionListItemDtoRes.builder()
+                        .submissionId(submission.getSubmissionId())
+                        .assignmentId(assignmentId)
+                        .assignmentTitle(assignment.getTitle())
+                        .studentId(submission.getStudent().getUserId())
+                        .studentName(submission.getStudent().getName())
+                        .studentEmail(submission.getStudent().getEmail())
+                        .score(submission.getScore())
+                        .maxScore(maxScore)
+                        .status(submission.getStatus())
+                        .submittedAt(submission.getSubmittedAt())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SubmissionDetailDtoRes getSubmissionDetail(Long submissionId) {
+        AssignmentSubmission submission = submissionRepo.findById(submissionId)
+                .orElseThrow(() -> new NotFoundException("Submission not found with id: " + submissionId));
+
+        Assignment assignment = submission.getAssignment();
+        List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignment.getAssignmentId());
+        List<StudentAnswer> studentAnswers = studentAnswerRepository.findBySubmission_SubmissionId(submissionId);
+        List<Feedback> feedbacks = feedbackRepository.findBySubmission_SubmissionId(submissionId);
+
+        Map<Long, StudentAnswer> answerMap = studentAnswers.stream()
+                .collect(Collectors.toMap(sa -> sa.getQuestion().getQuestionId(), sa -> sa));
+
+        List<AnswerDetailDtoRes> answerDetails = new ArrayList<>();
+        for (Question question : questions) {
+            StudentAnswer studentAnswer = answerMap.get(question.getQuestionId());
+            if (studentAnswer == null) {
+                continue;
             }
 
-            details.add(AnswerDetailDtoRes.builder()
+            answerDetails.add(AnswerDetailDtoRes.builder()
                     .questionId(question.getQuestionId())
                     .questionText(question.getQuestionText())
                     .optionA(question.getOptionA())
@@ -250,18 +322,34 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 .mapToInt(q -> q.getPoints() != null ? q.getPoints() : 1)
                 .sum();
 
-        double percentage = maxScore > 0 ? (submission.getScore() * 100.0 / maxScore) : 0.0;
+        List<FeedbackDtoRes> feedbackDtos = feedbacks.stream()
+                .map(feedback -> FeedbackDtoRes.builder()
+                        .feedbackId(feedback.getFeedbackId())
+                        .courseId(feedback.getCourse().getCourseId())
+                        .courseTitle(feedback.getCourse().getTitle())
+                        .studentId(feedback.getStudent().getUserId())
+                        .studentName(feedback.getStudent().getName())
+                        .teacherId(feedback.getTeacher().getUserId())
+                        .teacherName(feedback.getTeacher().getName())
+                        .comment(feedback.getComment())
+                        .gradedContent(feedback.getGradedContent())
+                        .createdAt(feedback.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
 
-        return QuizResultDtoRes.builder()
+        return SubmissionDetailDtoRes.builder()
                 .submissionId(submission.getSubmissionId())
-                .assignmentId(assignmentId)
-                .totalQuestions(questions.size())
-                .correctAnswers(correctCount)
-                .wrongAnswers(wrongCount)
+                .assignmentId(assignment.getAssignmentId())
+                .assignmentTitle(assignment.getTitle())
+                .studentId(submission.getStudent().getUserId())
+                .studentName(submission.getStudent().getName())
+                .studentEmail(submission.getStudent().getEmail())
+                .studentAnswers(answerDetails)
                 .score(submission.getScore())
                 .maxScore(maxScore)
-                .percentage(Math.round(percentage * 100.0) / 100.0)
-                .details(details)
+                .status(submission.getStatus())
+                .submittedAt(submission.getSubmittedAt())
+                .feedbacks(feedbackDtos)
                 .build();
     }
 }

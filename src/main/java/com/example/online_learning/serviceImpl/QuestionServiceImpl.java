@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -116,29 +115,30 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     @Transactional(readOnly = true)
     public List<QuestionDtoRes> getQuestionsByAssignmentId(Long assignmentId) {
-        
         if (!assignmentRepository.existsById(assignmentId)) {
             throw new NotFoundException("Assignment not found with id: " + assignmentId);
         }
 
-
         List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignmentId);
+        List<QuestionDtoRes> result = new ArrayList<>();
 
+        for (Question question : questions) {
+            QuestionDtoRes dto = QuestionDtoRes.builder()
+                    .questionId(question.getQuestionId())
+                    .assignmentId(question.getAssignment().getAssignmentId())
+                    .questionText(question.getQuestionText())
+                    .optionA(question.getOptionA())
+                    .optionB(question.getOptionB())
+                    .optionC(question.getOptionC())
+                    .optionD(question.getOptionD())
+                    .correctAnswer(question.getCorrectAnswer())
+                    .orderIndex(question.getOrderIndex())
+                    .points(question.getPoints())
+                    .build();
+            result.add(dto);
+        }
 
-        return questions.stream()
-                .map(question -> QuestionDtoRes.builder()
-                        .questionId(question.getQuestionId())
-                        .assignmentId(question.getAssignment().getAssignmentId())
-                        .questionText(question.getQuestionText())
-                        .optionA(question.getOptionA())
-                        .optionB(question.getOptionB())
-                        .optionC(question.getOptionC())
-                        .optionD(question.getOptionD())
-                        .correctAnswer(question.getCorrectAnswer())
-                        .orderIndex(question.getOrderIndex())
-                        .points(question.getPoints())
-                        .build())
-                .collect(Collectors.toList());
+        return result;
     }
 
     private void validateFile(MultipartFile file) {
@@ -160,7 +160,7 @@ public class QuestionServiceImpl implements QuestionService {
         List<QuestionDtoReq> questions = new ArrayList<>();
 
         String filename = file.getOriginalFilename();
-        Workbook workbook;
+        Workbook workbook = null;
         
         try {
             if (filename != null && filename.endsWith(".xlsx")) {
@@ -170,18 +170,13 @@ public class QuestionServiceImpl implements QuestionService {
             } else {
                 throw new IllegalArgumentException("Unsupported file format. Only .xlsx and .xls are supported.");
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Error reading Excel file: " + e.getMessage(), e);
-        }
 
-        try (workbook) {
             Sheet sheet = workbook.getSheetAt(0); 
 
             if (sheet == null) {
                 throw new IllegalArgumentException("Excel file is empty");
             }
 
-            
             for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
                 Row row = sheet.getRow(rowIndex);
                 
@@ -189,12 +184,10 @@ public class QuestionServiceImpl implements QuestionService {
                     continue; 
                 }
 
-               
                 if (isRowEmpty(row)) {
                     continue;
                 }
 
-                // Read 6 columns
                 String questionText = getCellValueAsString(row.getCell(0));
                 String optionA = getCellValueAsString(row.getCell(1));
                 String optionB = getCellValueAsString(row.getCell(2));
@@ -202,7 +195,6 @@ public class QuestionServiceImpl implements QuestionService {
                 String optionD = getCellValueAsString(row.getCell(4));
                 String correctAnswer = getCellValueAsString(row.getCell(5));
 
-                // Skip if question text is empty
                 if (questionText == null || questionText.trim().isEmpty()) {
                     continue;
                 }
@@ -223,6 +215,14 @@ public class QuestionServiceImpl implements QuestionService {
 
         } catch (IOException e) {
             throw new RuntimeException("Error reading Excel file: " + e.getMessage(), e);
+        } finally {
+            if (workbook != null) {
+                try {
+                    workbook.close();
+                } catch (IOException e) {
+                    // Ignore close error
+                }
+            }
         }
 
         return questions;

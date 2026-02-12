@@ -152,6 +152,10 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                     dto.setCourseCreatedAt(course.getCreatedAt());
                     dto.setEnrollmentStatus(enrollment.getStatus());
                     dto.setEnrolledAt(enrollment.getEnrolledAt());
+                    if (course.getTeacher() != null) {
+                        dto.setTeacherId(course.getTeacher().getUserId());
+                        dto.setTeacherName(course.getTeacher().getName());
+                    }
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -179,6 +183,10 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                     dto.setCourseCreatedAt(course.getCreatedAt());
                     dto.setEnrollmentStatus(enrollment.getStatus());
                     dto.setEnrolledAt(enrollment.getEnrolledAt());
+                    if (course.getTeacher() != null) {
+                        dto.setTeacherId(course.getTeacher().getUserId());
+                        dto.setTeacherName(course.getTeacher().getName());
+                    }
                     return dto;
                 })
                 .collect(Collectors.toList());

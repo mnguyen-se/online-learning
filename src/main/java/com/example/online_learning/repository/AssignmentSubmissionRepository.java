@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 @Repository
 public interface AssignmentSubmissionRepository
@@ -13,6 +14,8 @@ public interface AssignmentSubmissionRepository
 
     Optional<AssignmentSubmission> findByAssignment_AssignmentIdAndStudent_UserId(
             Long assignmentId, Long userId);
+
+    List<AssignmentSubmission> findByAssignment_AssignmentId(Long assignmentId);
 
     @Query("""
 SELECT COUNT(s)

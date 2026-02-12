@@ -12,6 +12,7 @@ public class FeedbackMapper {
     public FeedbackDtoRes toDto(Feedback feedback) {
         FeedbackDtoRes dto = new FeedbackDtoRes();
         dto.setFeedbackId(feedback.getFeedbackId());
+        dto.setGradedContent(feedback.getGradedContent());
         dto.setCourseId(feedback.getCourse().getCourseId());
         dto.setCourseTitle(feedback.getCourse().getTitle());
         dto.setStudentId(feedback.getStudent().getUserId());

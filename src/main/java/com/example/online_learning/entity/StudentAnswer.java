@@ -27,7 +27,6 @@ public class StudentAnswer {
     @Column(nullable = false, length = 1)
     private String studentAnswer;
 
-    @Column(nullable = false)
     private Boolean isCorrect;
 
     private Integer pointsEarned;
