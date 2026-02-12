@@ -4,5 +4,5 @@ public enum SubmissionStatus {
     SUBMITTED,
     GRADED,
     COMPLETED,
-   
+    NEEDS_REVISION
 }

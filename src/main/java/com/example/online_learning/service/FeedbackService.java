@@ -15,6 +15,20 @@ public interface FeedbackService {
             String comment
     );
 
+    public void gradeQuizSubmission(
+            Long submissionId,
+            CustomUserDetail userDetail,
+            Integer score,
+            Boolean requestRevision,
+            String comment
+    );
+
+    public void requestRevision(
+            Long submissionId,
+            CustomUserDetail userDetail,
+            String comment
+    );
+
     public Feedback gradeSubmissionWithAI(
             Long submissionId,
             CustomUserDetail userDetail,

@@ -2,6 +2,7 @@ package com.example.online_learning.controller;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.example.online_learning.dto.request.AssignmentDtoReq;
+import com.example.online_learning.dto.request.GradeSubmissionDtoReq;
 import com.example.online_learning.dto.request.SubmitAnswersDtoReq;
 import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.AssignmentService;
@@ -74,11 +75,11 @@ public class AssignmentController {
     }
 
     /**
-     * 3️⃣ Submit quiz & chấm điểm tự động
+     * 3️⃣ Submit quiz - chờ giáo viên chấm
      */
     @Operation(
             summary = "Submit quiz",
-            description = "Submit đáp án quiz và nhận kết quả chấm điểm tự động"
+            description = "Submit đáp án quiz, chờ giáo viên chấm điểm thủ công"
     )
     @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
     @PostMapping("/{assignmentId}/submit-quiz")
@@ -111,22 +112,79 @@ public class AssignmentController {
     }
 
     /**
-     * 5️⃣ Giáo viên chấm bài
+     * 5️⃣ Giáo viên chấm bài quiz
      */
     @Operation(
-            summary = "Chấm bài assignment",
-            description = "TEACHER / ADMIN chấm điểm và nhận xét submission"
+            summary = "Chấm bài quiz",
+            description = "TEACHER / ADMIN chấm điểm quiz và nhận xét submission. Tự động tính isCorrect và pointsEarned."
     )
     @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
     @PostMapping("/submissions/{submissionId}/grade")
-    public ResponseEntity<?> grade(
+    public ResponseEntity<?> gradeQuiz(
             @PathVariable Long submissionId,
             @AuthenticationPrincipal CustomUserDetail userDetail,
-            @RequestParam Integer score,
+            @RequestBody GradeSubmissionDtoReq request
+    ) {
+        feedbackService.gradeQuizSubmission(
+                submissionId,
+                userDetail,
+                request.getScore(),
+                request.getRequestRevision(),
+                request.getComment()
+        );
+        return ResponseEntity.ok("Grade submission successfully!");
+    }
+
+    /**
+     * 5b️⃣ Giáo viên yêu cầu làm lại (không chấm điểm)
+     */
+    @Operation(
+            summary = "Yêu cầu học sinh làm lại",
+            description = "TEACHER / ADMIN yêu cầu học sinh làm lại bài mà không chấm điểm"
+    )
+    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
+    @PostMapping("/submissions/{submissionId}/request-revision")
+    public ResponseEntity<?> requestRevision(
+            @PathVariable Long submissionId,
+            @AuthenticationPrincipal CustomUserDetail userDetail,
             @RequestBody String comment
     ) {
-        feedbackService.gradeSubmission(submissionId, userDetail, score, comment);
-        return ResponseEntity.ok("Grade submission successfully!");
+        feedbackService.requestRevision(submissionId, userDetail, comment);
+        return ResponseEntity.ok("Đã yêu cầu học sinh làm lại bài tập.");
+    }
+
+    /**
+     * 5c️⃣ Giáo viên xem danh sách bài nộp
+     */
+    @Operation(
+            summary = "Xem danh sách bài nộp",
+            description = "TEACHER / ADMIN xem danh sách tất cả bài nộp của một assignment"
+    )
+    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
+    @GetMapping("/{assignmentId}/submissions")
+    public ResponseEntity<?> getSubmissionsByAssignment(
+            @PathVariable Long assignmentId
+    ) {
+        return ResponseEntity.ok(
+                submissionService.getSubmissionsByAssignment(assignmentId)
+        );
+    }
+
+    /**
+     * 5d️⃣ Giáo viên xem chi tiết bài làm
+     */
+    @Operation(
+            summary = "Xem chi tiết bài làm",
+            description = "TEACHER / ADMIN xem chi tiết bài làm của học sinh, bao gồm câu hỏi, đáp án, và feedback"
+    )
+    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
+    @GetMapping("/submissions/{submissionId}")
+    public ResponseEntity<?> getSubmissionDetail(
+            @PathVariable Long submissionId
+    ) {
+        return ResponseEntity.ok(
+                submissionService.getSubmissionDetail(submissionId)
+        );
     }
 
     /**
