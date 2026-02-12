@@ -17,4 +17,5 @@ public interface ModuleRepository extends JpaRepository<Module, Long> {
     boolean existsByCourse_CourseIdAndOrderIndex(Long courseId, Integer orderIndex);
     @Query("SELECT COALESCE(MAX(m.orderIndex), 0) FROM Module m WHERE m.course.courseId = :courseId")
     Integer findMaxOrderIndexByCourseId(@Param("courseId") Long courseId);
+    Long countByCourse_CourseId(Long courseId);
 }

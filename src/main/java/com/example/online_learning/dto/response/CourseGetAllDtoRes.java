@@ -1,21 +1,15 @@
 package com.example.online_learning.dto.response;
 
-import com.example.online_learning.entity.Module;
-import com.example.online_learning.entity.User;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CourseDtoRes {
-
+public class CourseGetAllDtoRes {
     private Long courseId;
     @Column(nullable = false)
     private String title;
@@ -31,7 +25,7 @@ public class CourseDtoRes {
 
     private boolean isPublic;
 
-    private List<ModuleDtoRes> modules;
-    
-    private List<Long> assignmentIds;
+    private Long moduleCount;
+
+    private Long assignmentCount;
 }

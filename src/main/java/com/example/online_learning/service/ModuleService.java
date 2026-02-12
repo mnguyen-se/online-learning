@@ -9,6 +9,6 @@ public interface ModuleService {
     ModuleDtoRes createModule(ModuleDtoReq dto);
     void deleteModule(Long moduleId);
     ModuleDtoRes updateModule(Long moduleId, ModuleDtoReq dto);
-    List<ModuleDtoRes> findModuleById(Long moduleId);
+    ModuleDtoRes findModuleById(Long moduleId);
     List<ModuleDtoRes> findModuleByCourseId(Long courseId);
 }

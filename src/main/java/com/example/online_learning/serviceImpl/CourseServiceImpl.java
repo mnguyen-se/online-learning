@@ -12,7 +12,9 @@ import com.example.online_learning.repository.CourseRepository;
 import com.example.online_learning.repository.UserRepository;
 import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.CourseService;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,6 +32,11 @@ public class CourseServiceImpl implements CourseService {
         this.userRepository = userRepository;
     }
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "courses_all", allEntries = true),
+            @CacheEvict(value = "course:list:public", allEntries = true),
+            @CacheEvict(value = "courses_teacher", key = "#userDetail.user.userId")
+    })
     public CourseDtoRes createCourse(CourseDtoReq dto, CustomUserDetail userDetail) {
         Course course = courseMapper.toEntity(dto);
         course.setCreatedBy(userDetail.getUser());
@@ -53,6 +60,11 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "courses_all", allEntries = true),
+            @CacheEvict(value = "course:list:public", allEntries = true),
+            @CacheEvict(value = "courses_teacher", key = "#userDetail.user.userId")
+    })
     public CourseDtoRes updateCourse(Long courseId, UpdateCourseDtoReq dto, CustomUserDetail userDetail) {
         Course course = courseRepository.findByCourseId(courseId);
         if (course == null) {
@@ -92,21 +104,25 @@ public class CourseServiceImpl implements CourseService {
 
 
     @Override
-    @Cacheable(value = "courses", key = "'all'")
+    @Cacheable(value = "course:list:all")
     public List<CourseDtoRes> getAllCourses() {
         return courseMapper.toDto(courseRepository.findAll());
     }
 
 
+
     @Override
-    @Cacheable(value = "courses", key = "'public'")
+    @Cacheable(value = "course:list:public")
     public List<CourseDtoRes> findCoursesByPublicTrue() {
         return courseMapper.toDto(courseRepository.findAllByIsPublicTrue());
     }
 
 
     @Override
-    @Cacheable(value = "courses", key = "'teacher_' + #userDetail.user.userId")
+    @Cacheable(
+            value = "course:list:teacher:{teacherId}",
+            key = "#userDetail.user.userId"
+    )
     public List<CourseDtoRes> getMyCourses(CustomUserDetail userDetail) {
 
         User teacher = userDetail.getUser();

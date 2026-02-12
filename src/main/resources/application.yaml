@@ -1,6 +1,12 @@
 spring:
-  cache:
-    type: simple
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Ho_Chi_Minh
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
   cloudinary:
     cloud-name: ${CLOUDINARY_CLOUD_NAME}

@@ -112,7 +112,7 @@ public class ModuleController {
             @ApiResponse(responseCode = "404", description = "Không tìm thấy module")
     })
     @GetMapping("/{moduleId}")
-    public ResponseEntity<List<ModuleDtoRes>> getModuleById(
+    public ResponseEntity<ModuleDtoRes> getModuleById(
             @Parameter(
                     description = "ID của module",
                     example = "1",
@@ -120,7 +120,7 @@ public class ModuleController {
             )
             @PathVariable Long moduleId
     ) {
-        List<ModuleDtoRes> result = moduleService.findModuleById(moduleId);
+        ModuleDtoRes result = moduleService.findModuleById(moduleId);
         return ResponseEntity.ok(result);
     }
 

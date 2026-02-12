@@ -2,8 +2,10 @@ package com.example.online_learning.mapper;
 
 import com.example.online_learning.dto.request.CourseDtoReq;
 import com.example.online_learning.dto.response.CourseDtoRes;
+import com.example.online_learning.dto.response.CourseGetAllDtoRes;
 import com.example.online_learning.entity.Course;
 import com.example.online_learning.repository.AssignmentRepository;
+import com.example.online_learning.repository.ModuleRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -14,10 +16,12 @@ import java.util.stream.Collectors;
 public class CourseMapper {
     private final ModuleMapper moduleMapper;
     private final AssignmentRepository assignmentRepository;
+    private final ModuleRepository moduleRepository;
 
-    public CourseMapper(ModuleMapper moduleMapper, AssignmentRepository assignmentRepository) {
+    public CourseMapper(ModuleMapper moduleMapper, AssignmentRepository assignmentRepository, ModuleRepository moduleRepository) {
         this.moduleMapper = moduleMapper;
         this.assignmentRepository = assignmentRepository;
+        this.moduleRepository = moduleRepository;
     }
 
     public Course toEntity(CourseDtoReq dto){
@@ -35,8 +39,13 @@ public class CourseMapper {
         dto.setDescription(course.getDescription());
         dto.setCreatedAt(course.getCreatedAt());
         dto.setPublic(course.getIsPublic());
-        dto.setCreatedBy(course.getCreatedBy());
-        dto.setTeacher(course.getTeacher());
+        dto.setCreatedById(course.getCreatedBy().getUserId());
+        dto.setTeacherId(
+                course.getTeacher() != null
+                        ? course.getTeacher().getUserId()
+                        : null
+        );
+
         dto.setModules(new ArrayList<>());
         dto.setModules(moduleMapper.toDto(course.getModules()));
         
@@ -57,5 +66,19 @@ public class CourseMapper {
             dtos.add(dto);
         }
         return dtos;
+    }
+
+    public CourseGetAllDtoRes toAll(Course course){
+        CourseGetAllDtoRes dto = new CourseGetAllDtoRes();
+        dto.setCourseId(course.getCourseId());
+        dto.setTitle(course.getTitle());
+        dto.setDescription(course.getDescription());
+        dto.setCreatedAt(course.getCreatedAt());
+        dto.setPublic(course.getIsPublic());
+        dto.setCreatedById(course.getCreatedBy().getUserId());
+        dto.setTeacherId(course.getTeacher() != null ? course.getTeacher().getUserId() : null);
+        dto.setAssignmentCount(assignmentRepository.countByCourse_CourseId(course.getCourseId()));
+        dto.setModuleCount(moduleRepository.countByCourse_CourseId(course.getCourseId()));
+        return dto;
     }
 }

@@ -36,7 +36,7 @@ public class Course {
     private User createdBy;
 
     @ManyToOne
-    @JoinColumn(name = "teacher_id")
+    @JoinColumn(name = "teacher_id",nullable = true)
     private User teacher;
 
     @CreationTimestamp

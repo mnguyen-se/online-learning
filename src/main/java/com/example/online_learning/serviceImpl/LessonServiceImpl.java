@@ -12,6 +12,8 @@ import com.example.online_learning.exception.NotFoundException;
 import com.example.online_learning.mapper.LessonMapper;
 import com.example.online_learning.repository.LessonRepository;
 import com.example.online_learning.service.LessonService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.cache.annotation.Cacheable;
@@ -39,6 +41,10 @@ public class LessonServiceImpl implements LessonService {
 
     // ================= CREATE =================
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "lesson:list:all", allEntries = true),
+            @CacheEvict(value = "lesson:list:public", allEntries = true)
+    })
     public LessonDtoRes createLesson(LessonDtoReq dto) {
 
         if (dto == null) {
@@ -60,6 +66,10 @@ public class LessonServiceImpl implements LessonService {
 
     // ================= DELETE =================
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "lesson:list:all", allEntries = true),
+            @CacheEvict(value = "lesson:list:public", allEntries = true)
+    })
     public void deleteLesson(Long lessonId) {
 
         Lesson lesson = lessonRepository.findByLessonId(lessonId);
@@ -72,6 +82,10 @@ public class LessonServiceImpl implements LessonService {
 
     // ================= UPDATE =================
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "lesson:list:all", allEntries = true),
+            @CacheEvict(value = "lesson:list:public", allEntries = true)
+    })
     public void updateLesson(Long lessonId, LessonDtoReq dto) {
 
         Lesson lesson = lessonRepository.findByLessonId(lessonId);
@@ -103,7 +117,7 @@ public class LessonServiceImpl implements LessonService {
     }
 
     // ================= GET ALL =================
-    @Cacheable(value = "lessons", key = "'all'")
+    @Cacheable("lesson:list:all")
     @Override
     public List<LessonDtoRes> getAllLessons() {
         List<Lesson> lessons = lessonRepository.findAll();
@@ -117,7 +131,7 @@ public class LessonServiceImpl implements LessonService {
 
     // ================= GET PUBLIC =================
     @Override
-    @Cacheable(value = "lessons", key = "'public'")
+    @Cacheable("lesson:list:public")
     public List<LessonDtoRes> findLessonByPublicTrue() {
 
         List<Lesson> lessons = lessonRepository.findAllByIsPublicTrue();
@@ -133,6 +147,10 @@ public class LessonServiceImpl implements LessonService {
 
     // ================= UPLOAD VIDEO =================
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "lesson:list:all", allEntries = true),
+            @CacheEvict(value = "lesson:list:public", allEntries = true)
+    })
     public String uploadFile(Long lessonId, MultipartFile file) {
 
         // 1️⃣ Validate file

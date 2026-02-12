@@ -9,6 +9,9 @@ import com.example.online_learning.exception.NotFoundException;
 import com.example.online_learning.mapper.ModuleMapper;
 import com.example.online_learning.repository.ModuleRepository;
 import com.example.online_learning.service.ModuleService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,6 +28,12 @@ public class ModuleServiceImpl implements ModuleService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "module:list:course", key = "#dto.courseId"),
+            @CacheEvict(value = "course:list:all", allEntries = true),
+            @CacheEvict(value = "course:list:public", allEntries = true),
+            @CacheEvict(value = "course:list:teacher", allEntries = true)
+    })
     public ModuleDtoRes createModule(ModuleDtoReq dto) {
 
         if (dto == null) {
@@ -48,6 +57,13 @@ public class ModuleServiceImpl implements ModuleService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "module:detail", key = "#moduleId"),
+            @CacheEvict(value = "module:list:course", key = "#dto.courseId"),
+            @CacheEvict(value = "course:list:all", allEntries = true),
+            @CacheEvict(value = "course:list:public", allEntries = true),
+            @CacheEvict(value = "course:list:teacher", allEntries = true)
+    })
     public void deleteModule(Long moduleId) {
 
         Module module = moduleRepository.findById(moduleId)
@@ -64,6 +80,13 @@ public class ModuleServiceImpl implements ModuleService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "module:detail", key = "#moduleId"),
+            @CacheEvict(value = "module:list:course", key = "#dto.courseId"),
+            @CacheEvict(value = "course:list:all", allEntries = true),
+            @CacheEvict(value = "course:list:public", allEntries = true),
+            @CacheEvict(value = "course:list:teacher", allEntries = true)
+    })
     public ModuleDtoRes updateModule(Long moduleId, ModuleDtoReq dto) {
 
         if (dto == null) {
@@ -85,18 +108,17 @@ public class ModuleServiceImpl implements ModuleService {
     }
 
     @Override
-    public List<ModuleDtoRes> findModuleById(Long moduleId) {
+    @Cacheable(value = "module:detail", key = "#moduleId")
+    public ModuleDtoRes findModuleById(Long moduleId) {
 
-        List<Module> modules = moduleRepository.findAllByModuleId(moduleId);
+        Module module = moduleRepository.findById(moduleId)
+                .orElseThrow(() -> new NotFoundException("Module not found"));
 
-        if (modules.isEmpty()) {
-            throw new NotFoundException("Module not found");
-        }
-
-        return moduleMapper.toDto(modules);
+        return moduleMapper.toDto(module);
     }
 
     @Override
+    @Cacheable(value = "module:list:course", key = "#courseId")
     public List<ModuleDtoRes> findModuleByCourseId(Long courseId) {
 
         List<Module> modules =
