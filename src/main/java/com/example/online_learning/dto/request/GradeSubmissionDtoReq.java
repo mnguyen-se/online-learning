@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class GradeSubmissionDtoReq {
     private Integer score;
-    private Boolean requestRevision;
     private String comment;
     private String gradedContent;
 }

@@ -39,9 +39,6 @@ public class AssignmentController {
         this.questionService = questionService;
     }
 
-    /**
-     * 1️⃣ Tạo assignment cho course
-     */
     @Operation(
             summary = "Tạo assignment",
             description = "COURSE_MANAGER / ADMIN tạo assignment cho một khóa học"
@@ -56,9 +53,6 @@ public class AssignmentController {
         );
     }
 
-    /**
-     * 2️⃣ Submit assignment dạng text
-     */
     @Operation(
             summary = "Submit assignment",
             description = "Học sinh nộp bài assignment dạng text"
@@ -74,9 +68,6 @@ public class AssignmentController {
         return ResponseEntity.ok("Submit assignment successfully!");
     }
 
-    /**
-     * 3️⃣ Submit quiz - chờ giáo viên chấm
-     */
     @Operation(
             summary = "Submit quiz",
             description = "Submit đáp án quiz, chờ giáo viên chấm điểm thủ công"
@@ -93,9 +84,6 @@ public class AssignmentController {
         );
     }
 
-    /**
-     * 4️⃣ Lấy kết quả quiz
-     */
     @Operation(
             summary = "Xem kết quả quiz",
             description = "Lấy kết quả quiz của học sinh"
@@ -111,9 +99,6 @@ public class AssignmentController {
         );
     }
 
-    /**
-     * 5️⃣ Giáo viên chấm bài quiz
-     */
     @Operation(
             summary = "Chấm bài quiz",
             description = "TEACHER / ADMIN chấm điểm quiz và nhận xét submission. Tự động tính isCorrect và pointsEarned. Luôn set status = GRADED."
@@ -129,14 +114,12 @@ public class AssignmentController {
                 submissionId,
                 userDetail,
                 request.getScore(),
-                request.getComment()
+                request.getComment(),
+                request.getGradedContent()
         );
         return ResponseEntity.ok("Grade submission successfully!");
     }
 
-    /**
-     * 5b️⃣ Giáo viên xem danh sách bài nộp
-     */
     @Operation(
             summary = "Xem danh sách bài nộp",
             description = "TEACHER / ADMIN xem danh sách tất cả bài nộp của một assignment"
@@ -151,9 +134,6 @@ public class AssignmentController {
         );
     }
 
-    /**
-     * 5d️⃣ Giáo viên xem chi tiết bài làm
-     */
     @Operation(
             summary = "Xem chi tiết bài làm",
             description = "TEACHER / ADMIN xem chi tiết bài làm của học sinh, bao gồm câu hỏi, đáp án, và feedback"
@@ -168,9 +148,6 @@ public class AssignmentController {
         );
     }
 
-    /**
-     * 6️⃣ Xem assignment theo ID
-     */
     @Operation(
             summary = "Xem assignment",
             description = "Lấy thông tin assignment theo assignmentId"
@@ -182,9 +159,6 @@ public class AssignmentController {
         );
     }
 
-    /**
-     * 7️⃣ Lấy assignment theo course
-     */
     @Operation(
             summary = "Lấy assignment theo course",
             description = "Lấy danh sách assignment thuộc một khóa học"
@@ -198,9 +172,6 @@ public class AssignmentController {
         );
     }
 
-    /**
-     * 8️⃣ Lấy câu hỏi của assignment
-     */
     @Operation(
             summary = "Lấy danh sách câu hỏi",
             description = "Lấy tất cả câu hỏi của assignment"
@@ -214,9 +185,6 @@ public class AssignmentController {
         );
     }
 
-    /**
-     * 9️⃣ Upload Excel tạo câu hỏi
-     */
     @Operation(
             summary = "Upload câu hỏi bằng Excel",
             description = """

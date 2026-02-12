@@ -12,13 +12,8 @@ public interface FeedbackService {
             Long submissionId,
             CustomUserDetail userDetail,
             Integer score,
-            String comment
-    );
-
-    public void requestRevision(
-            Long submissionId,
-            CustomUserDetail userDetail,
-            String comment
+            String comment,
+            String gradedContent
     );
 
     public Feedback gradeSubmissionWithAI(
