@@ -133,10 +133,6 @@
         </dependency>
 
         <!-- Redis Starter -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
 
         <!-- Optional: nếu dùng cache annotation như @Cacheable -->
         <dependency>
