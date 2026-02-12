@@ -1,5 +1,6 @@
 package com.example.online_learning.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,7 +40,9 @@ public class SubmitWritingAnswersDtoReq {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class MatchingPairDto {
-        private String aId; // ID của item ở cột A
-        private String bId; // ID của item ở cột B
+        @JsonProperty("aId")
+        private String aId;
+        @JsonProperty("bId")
+        private String bId;
     }
 }

@@ -437,6 +437,12 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
 
         List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignment.getAssignmentId());
         
+        WritingSubmissionDtoRes submissionDto = buildWritingSubmissionDtoRes(submission, questions);
+        
+        System.out.println("=== ATTEMPTING TO SEND EMAIL ===");
+        System.out.println("Email Service: " + (emailService != null ? "OK" : "NULL"));
+        System.out.println("Student Email: " + submission.getStudent().getEmail());
+        
         try {
             emailService.sendWritingAssignmentResult(
                 submission.getStudent().getEmail(),
@@ -444,13 +450,16 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 assignment.getTitle(),
                 submission.getScore(),
                 assignment.getMaxScore(),
-                submission.getContent()
+                submission.getContent(),
+                submissionDto.getAnswers()
             );
+            System.out.println("✅ Email service called successfully");
         } catch (Exception e) {
-            System.err.println("Failed to send email: " + e.getMessage());
+            System.err.println("❌ Failed to send email: " + e.getMessage());
+            e.printStackTrace();
         }
         
-        return buildWritingSubmissionDtoRes(submission, questions);
+        return submissionDto;
     }
 
     @Override
@@ -495,12 +504,20 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                     .answerId(studentAnswer.getAnswerId())
                     .questionId(question.getQuestionId())
                     .questionText(question.getQuestionText())
+                    .questionType(question.getQuestionType())
                     .studentAnswer(studentAnswer.getStudentAnswer())
                     .points(question.getPoints() != null ? question.getPoints() : 1)
                     .pointsEarned(studentAnswer.getPointsEarned())
                     .isCorrect(studentAnswer.getIsCorrect())
-                    .sampleAnswer(question.getCorrectAnswer()) // Đáp án mẫu lưu trong correctAnswer
+                    .sampleAnswer(question.getCorrectAnswer())
                     .build());
+        }
+
+        Integer maxScore = submission.getAssignment().getMaxScore();
+        if (maxScore == null) {
+            maxScore = questions.stream()
+                    .mapToInt(q -> q.getPoints() != null ? q.getPoints() : 1)
+                    .sum();
         }
 
         return WritingSubmissionDtoRes.builder()
@@ -511,9 +528,9 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 .studentEmail(submission.getStudent().getEmail())
                 .submittedAt(submission.getSubmittedAt())
                 .score(submission.getScore())
-                .maxScore(submission.getAssignment().getMaxScore())
+                .maxScore(maxScore)
                 .status(submission.getStatus() != null ? submission.getStatus().name() : SubmissionStatus.SUBMITTED.name())
-                .feedback(submission.getContent())
+                .feedback(submission.getContent() != null ? submission.getContent() : "")
                 .answers(answerDetails)
                 .build();
     }
