@@ -40,7 +40,7 @@ spring:
         max-lifetime: 1800000
         connection-timeout: 30000
 
-      #-----------DATABASE LOCAL-------------############
+#      -----------DATABASE LOCAL-------------############
 #    url: jdbc:mysql://localhost:3306/online_learning?useSSL=false&serverTimezone=UTC
 #    username: root
 #    password: 123456
@@ -54,6 +54,18 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 logging:
   level:

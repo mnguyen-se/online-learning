@@ -1,4 +1,5 @@
 package com.example.online_learning.entity;
+import com.example.online_learning.constants.AssignmentType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,5 +32,9 @@ public class Assignment {
     private LocalDateTime dueDate;
 
     private Integer orderIndex;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AssignmentType assignmentType = AssignmentType.QUIZ; // Mặc định là QUIZ
 }
 
