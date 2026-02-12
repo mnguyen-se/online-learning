@@ -20,5 +20,6 @@ public class FeedbackDtoRes {
     private Long teacherId;
     private String teacherName;
     private String comment;
+    private String gradedContent;
     private LocalDateTime createdAt;
 }

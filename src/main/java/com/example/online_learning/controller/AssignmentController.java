@@ -116,7 +116,7 @@ public class AssignmentController {
      */
     @Operation(
             summary = "Chấm bài quiz",
-            description = "TEACHER / ADMIN chấm điểm quiz và nhận xét submission. Tự động tính isCorrect và pointsEarned."
+            description = "TEACHER / ADMIN chấm điểm quiz và nhận xét submission. Tự động tính isCorrect và pointsEarned. Luôn set status = GRADED."
     )
     @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
     @PostMapping("/submissions/{submissionId}/grade")
@@ -129,32 +129,13 @@ public class AssignmentController {
                 submissionId,
                 userDetail,
                 request.getScore(),
-                request.getRequestRevision(),
                 request.getComment()
         );
         return ResponseEntity.ok("Grade submission successfully!");
     }
 
     /**
-     * 5b️⃣ Giáo viên yêu cầu làm lại (không chấm điểm)
-     */
-    @Operation(
-            summary = "Yêu cầu học sinh làm lại",
-            description = "TEACHER / ADMIN yêu cầu học sinh làm lại bài mà không chấm điểm"
-    )
-    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
-    @PostMapping("/submissions/{submissionId}/request-revision")
-    public ResponseEntity<?> requestRevision(
-            @PathVariable Long submissionId,
-            @AuthenticationPrincipal CustomUserDetail userDetail,
-            @RequestBody String comment
-    ) {
-        feedbackService.requestRevision(submissionId, userDetail, comment);
-        return ResponseEntity.ok("Đã yêu cầu học sinh làm lại bài tập.");
-    }
-
-    /**
-     * 5c️⃣ Giáo viên xem danh sách bài nộp
+     * 5b️⃣ Giáo viên xem danh sách bài nộp
      */
     @Operation(
             summary = "Xem danh sách bài nộp",

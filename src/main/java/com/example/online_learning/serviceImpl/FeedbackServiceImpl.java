@@ -62,41 +62,12 @@ public class FeedbackServiceImpl implements FeedbackService {
         this.questionRepository = questionRepository;
     }
 
-    @Transactional
-    public void gradeSubmission(
-            Long submissionId,
-            CustomUserDetail userDetail,
-            Integer score,
-            String comment
-    ) {
-        AssignmentSubmission submission = submissionRepo.findById(submissionId)
-                .orElseThrow(() -> new RuntimeException("Submission not found"));
-
-        User teacher = userRepo.findById(userDetail.getUser().getUserId())
-                .orElseThrow(() -> new RuntimeException("Teacher not found"));
-
-        submission.setScore(score);
-        submission.setStatus(SubmissionStatus.GRADED);
-
-        Feedback feedback = Feedback.builder()
-                .submission(submission)
-                .teacher(teacher)
-                .student(submission.getStudent())
-                .course(submission.getAssignment().getCourse())
-                .comment(comment)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        feedbackRepo.save(feedback);
-    }
-
     @Override
     @Transactional
     public void gradeQuizSubmission(
             Long submissionId,
             CustomUserDetail userDetail,
             Integer score,
-            Boolean requestRevision,
             String comment
     ) {
         AssignmentSubmission submission = submissionRepo.findById(submissionId)
@@ -139,12 +110,7 @@ public class FeedbackServiceImpl implements FeedbackService {
             submission.setScore(totalScore);
         }
 
-        if (requestRevision != null && requestRevision) {
-            submission.setStatus(SubmissionStatus.NEEDS_REVISION);
-        } else {
-            submission.setStatus(SubmissionStatus.GRADED);
-        }
-
+        submission.setStatus(SubmissionStatus.GRADED);
         submissionRepo.save(submission);
 
         Feedback feedback = Feedback.builder()

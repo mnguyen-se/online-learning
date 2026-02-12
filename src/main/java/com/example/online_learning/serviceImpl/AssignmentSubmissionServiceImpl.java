@@ -91,6 +91,10 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
             throw new NotFoundException("No questions found for this assignment");
         }
 
+        if (request.getAnswers() == null || request.getAnswers().isEmpty()) {
+            throw new RuntimeException("Danh sách đáp án không được để trống");
+        }
+
         Map<Long, Question> questionMap = questions.stream()
                 .collect(Collectors.toMap(Question::getQuestionId, q -> q));
 
@@ -98,30 +102,29 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 .findByAssignment_AssignmentIdAndStudent_UserId(assignmentId, student.getUserId())
                 .orElse(null);
 
-        if (submission != null && submission.getStatus() != null && submission.getStatus() != SubmissionStatus.NEEDS_REVISION) {
+        if (submission != null) {
             throw new RuntimeException("Bạn đã nộp bài rồi");
         }
 
-        if (submission != null && submission.getStatus() == SubmissionStatus.NEEDS_REVISION) {
-            studentAnswerRepository.deleteBySubmission_SubmissionId(submission.getSubmissionId());
-        }
-
-        if (submission == null) {
-            submission = new AssignmentSubmission();
-            submission.setAssignment(assignment);
-            submission.setStudent(student);
-            submission.setSubmittedAt(LocalDateTime.now());
-        }
+        submission = new AssignmentSubmission();
+        submission.setAssignment(assignment);
+        submission.setStudent(student);
+        submission.setSubmittedAt(LocalDateTime.now());
 
         List<StudentAnswer> studentAnswers = new ArrayList<>();
+        List<Long> notFoundQuestionIds = new ArrayList<>();
 
         for (SubmitAnswersDtoReq.AnswerDto answerDto : request.getAnswers()) {
             Question question = questionMap.get(answerDto.getQuestionId());
             if (question == null) {
+                notFoundQuestionIds.add(answerDto.getQuestionId());
                 continue;
             }
 
-            String studentAnswerStr = answerDto.getAnswer().toUpperCase().trim();
+            String studentAnswerStr = answerDto.getAnswer() != null ? answerDto.getAnswer().toUpperCase().trim() : null;
+            if (studentAnswerStr == null || studentAnswerStr.isEmpty()) {
+                throw new RuntimeException("Đáp án không được để trống cho questionId: " + answerDto.getQuestionId());
+            }
 
             StudentAnswer studentAnswer = StudentAnswer.builder()
                     .submission(submission)
@@ -134,11 +137,23 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
             studentAnswers.add(studentAnswer);
         }
 
+        if (!notFoundQuestionIds.isEmpty()) {
+            throw new NotFoundException("Không tìm thấy câu hỏi với các ID: " + notFoundQuestionIds);
+        }
+
+        if (studentAnswers.isEmpty()) {
+            throw new RuntimeException("Không có đáp án hợp lệ nào được tạo. Vui lòng kiểm tra lại questionId trong request.");
+        }
+
         submission.setStatus(SubmissionStatus.SUBMITTED);
         submission.setScore(null);
         submission = submissionRepo.save(submission);
 
-        studentAnswerRepository.saveAll(studentAnswers);
+        List<StudentAnswer> savedAnswers = studentAnswerRepository.saveAll(studentAnswers);
+        
+        if (savedAnswers.size() != studentAnswers.size()) {
+            throw new RuntimeException("Không thể lưu tất cả đáp án. Đã lưu: " + savedAnswers.size() + "/" + studentAnswers.size());
+        }
 
         int maxScore = questions.stream()
                 .mapToInt(q -> q.getPoints() != null ? q.getPoints() : 1)
@@ -172,6 +187,10 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
             throw new RuntimeException("Bài làm đang chờ giáo viên chấm. Vui lòng chờ thông báo.");
         }
 
+        if (submission.getStatus() != SubmissionStatus.GRADED && submission.getStatus() != SubmissionStatus.COMPLETED) {
+            throw new RuntimeException("Kết quả chưa sẵn sàng.");
+        }
+
         List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignmentId);
         List<Feedback> feedbacks = feedbackRepository.findBySubmission_SubmissionId(submission.getSubmissionId());
 
@@ -193,25 +212,10 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                         .teacherId(feedback.getTeacher().getUserId())
                         .teacherName(feedback.getTeacher().getName())
                         .comment(feedback.getComment())
+                        .gradedContent(feedback.getGradedContent())
                         .createdAt(feedback.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
-
-        if (submission.getStatus() == SubmissionStatus.NEEDS_REVISION) {
-            return QuizResultDtoRes.builder()
-                    .submissionId(submission.getSubmissionId())
-                    .assignmentId(assignmentId)
-                    .score(submission.getScore())
-                    .maxScore(maxScore)
-                    .percentage(Math.round(percentage * 100.0) / 100.0)
-                    .details(null)
-                    .feedbacks(feedbackDtos)
-                    .build();
-        }
-
-        if (submission.getStatus() != SubmissionStatus.GRADED && submission.getStatus() != SubmissionStatus.COMPLETED) {
-            throw new RuntimeException("Kết quả chưa sẵn sàng.");
-        }
 
         List<StudentAnswer> studentAnswers = studentAnswerRepository.findBySubmission_SubmissionId(submission.getSubmissionId());
         Map<Long, StudentAnswer> answerMap = studentAnswers.stream()
@@ -328,6 +332,7 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                         .teacherId(feedback.getTeacher().getUserId())
                         .teacherName(feedback.getTeacher().getName())
                         .comment(feedback.getComment())
+                        .gradedContent(feedback.getGradedContent())
                         .createdAt(feedback.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());

@@ -8,18 +8,10 @@ import com.example.online_learning.security.CustomUserDetail;
 import java.util.List;
 
 public interface FeedbackService {
-    public void gradeSubmission(
+    void gradeQuizSubmission(
             Long submissionId,
             CustomUserDetail userDetail,
             Integer score,
-            String comment
-    );
-
-    public void gradeQuizSubmission(
-            Long submissionId,
-            CustomUserDetail userDetail,
-            Integer score,
-            Boolean requestRevision,
             String comment
     );
 
