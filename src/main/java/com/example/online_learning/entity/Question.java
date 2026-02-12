@@ -1,5 +1,6 @@
 package com.example.online_learning.entity;
 
+import com.example.online_learning.constants.QuestionType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,23 +24,34 @@ public class Question {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String questionText;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    // Cho QUIZ: bắt buộc, cho WRITING: nullable
+    @Column(columnDefinition = "TEXT")
     private String optionA;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String optionB;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String optionC;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String optionD;
 
-    @Column(nullable = false, length = 1)
-    private String correctAnswer; // A, B, C, hoặc D
+    // Cho QUIZ: A, B, C, hoặc D. Cho WRITING: có thể là đáp án mẫu hoặc null
+    @Column(columnDefinition = "TEXT")
+    private String correctAnswer;
 
     @Column(nullable = false)
     private Integer orderIndex;
 
     private Integer points; // Điểm cho câu hỏi (optional)
+
+    // Cho WRITING assignment: loại câu hỏi
+    @Enumerated(EnumType.STRING)
+    @Column(name = "question_type")
+    private QuestionType questionType;
+
+    // Cho WRITING assignment: lưu dữ liệu phức tạp (JSON) cho REORDER, MATCHING, ESSAY_WRITING
+    @Column(columnDefinition = "TEXT")
+    private String questionData;
 }

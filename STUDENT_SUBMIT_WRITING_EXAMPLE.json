@@ -1,0 +1,119 @@
+{
+  "description": "JSON mẫu để học sinh nộp bài Writing Assignment",
+  "endpoint": "POST /api/v1/assignments/2/submit-writing",
+  "note": "Thay assignmentId = 2 bằng assignmentId thực tế của bạn",
+  
+  "request": {
+    "answers": [
+      {
+        "questionId": 21,
+        "answer": "は"
+      },
+      {
+        "questionId": 22,
+        "answer": "へ"
+      },
+      {
+        "questionId": 23,
+        "orderedItems": ["わたし", "は", "学生", "です"]
+      },
+      {
+        "questionId": 24,
+        "matchingPairs": [
+          {"aId": "1", "bId": "1"},
+          {"aId": "2", "bId": "2"},
+          {"aId": "3", "bId": "3"},
+          {"aId": "4", "bId": "4"}
+        ]
+      },
+      {
+        "questionId": 25,
+        "answer": "私の家族は4人です。父、母、姉と私です。父は会社員で、母は教師です。姉は大学生です。週末、私たちは一緒に料理をしたり、映画を見たりします。家族の時間が一番大切です。"
+      }
+    ]
+  },
+  
+  "lưu_ý": {
+    "FILL_BLANK": "Dùng field 'answer' (string) - ví dụ: questionId 21, 22",
+    "REORDER": "Dùng field 'orderedItems' (array of strings) - ví dụ: questionId 23",
+    "MATCHING": "Dùng field 'matchingPairs' (array of objects) - ví dụ: questionId 24",
+    "ESSAY_WRITING": "Dùng field 'answer' (string) - ví dụ: questionId 25"
+  },
+  
+  "ví_dụ_các_trường_hợp": {
+    "trường_hợp_1_tất_cả_đúng": {
+      "answers": [
+        {
+          "questionId": 21,
+          "answer": "は"
+        },
+        {
+          "questionId": 22,
+          "answer": "へ"
+        },
+        {
+          "questionId": 23,
+          "orderedItems": ["わたし", "は", "学生", "です"]
+        },
+        {
+          "questionId": 24,
+          "matchingPairs": [
+            {"aId": "1", "bId": "1"},
+            {"aId": "2", "bId": "2"},
+            {"aId": "3", "bId": "3"},
+            {"aId": "4", "bId": "4"}
+          ]
+        },
+        {
+          "questionId": 25,
+          "answer": "私の家族は4人です。父、母、姉と私です。父は会社員で、母は教師です。姉は大学生です。週末、私たちは一緒に料理をしたり、映画を見たりします。家族の時間が一番大切です。"
+        }
+      ]
+    },
+    
+    "trường_hợp_2_một_số_sai": {
+      "answers": [
+        {
+          "questionId": 21,
+          "answer": "が"
+        },
+        {
+          "questionId": 22,
+          "answer": "へ"
+        },
+        {
+          "questionId": 23,
+          "orderedItems": ["学生", "は", "わたし", "です"]
+        },
+        {
+          "questionId": 24,
+          "matchingPairs": [
+            {"aId": "1", "bId": "2"},
+            {"aId": "2", "bId": "1"},
+            {"aId": "3", "bId": "3"},
+            {"aId": "4", "bId": "4"}
+          ]
+        },
+        {
+          "questionId": 25,
+          "answer": "私の家族は3人です。父、母と私です。父は会社員です。"
+        }
+      ]
+    },
+    
+    "trường_hợp_3_reorder_sai_thứ_tự": {
+      "questionId": 23,
+      "orderedItems": ["は", "学生", "わたし", "です"]
+    },
+    
+    "trường_hợp_4_matching_một_phần": {
+      "questionId": 24,
+      "matchingPairs": [
+        {"aId": "1", "bId": "1"},
+        {"aId": "2", "bId": "3"},
+        {"aId": "3", "bId": "2"},
+        {"aId": "4", "bId": "4"}
+      ]
+    }
+  }
+}

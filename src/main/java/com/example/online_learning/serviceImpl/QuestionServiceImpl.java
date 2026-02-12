@@ -1,6 +1,7 @@
 package com.example.online_learning.serviceImpl;
 
 import com.example.online_learning.dto.request.QuestionDtoReq;
+import com.example.online_learning.dto.request.WritingQuestionDtoReq;
 import com.example.online_learning.dto.response.ExcelErrorDto;
 import com.example.online_learning.dto.response.ExcelUploadResponseDto;
 import com.example.online_learning.dto.response.QuestionDtoRes;
@@ -123,22 +124,135 @@ public class QuestionServiceImpl implements QuestionService {
         List<QuestionDtoRes> result = new ArrayList<>();
 
         for (Question question : questions) {
-            QuestionDtoRes dto = QuestionDtoRes.builder()
-                    .questionId(question.getQuestionId())
-                    .assignmentId(question.getAssignment().getAssignmentId())
-                    .questionText(question.getQuestionText())
-                    .optionA(question.getOptionA())
-                    .optionB(question.getOptionB())
-                    .optionC(question.getOptionC())
-                    .optionD(question.getOptionD())
-                    .correctAnswer(question.getCorrectAnswer())
-                    .orderIndex(question.getOrderIndex())
-                    .points(question.getPoints())
-                    .build();
+            QuestionDtoRes dto = convertQuestionToDtoRes(question);
             result.add(dto);
         }
 
         return result;
+    }
+
+    @Override
+    @Transactional
+    public QuestionDtoRes createWritingQuestion(Long assignmentId, WritingQuestionDtoReq request) {
+        Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new NotFoundException("Assignment not found with id: " + assignmentId));
+
+        // Kiểm tra assignment phải là WRITING type
+        if (assignment.getAssignmentType() != com.example.online_learning.constants.AssignmentType.WRITING) {
+            throw new IllegalArgumentException("This assignment is not a WRITING type assignment");
+        }
+
+        // Lưu dữ liệu phức tạp vào questionData (JSON)
+        String questionDataJson = null;
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            
+            if (request.getQuestionType() == com.example.online_learning.constants.QuestionType.ESSAY_WRITING) {
+                // Lưu thông tin về bài văn
+                java.util.Map<String, Object> essayData = new java.util.HashMap<>();
+                essayData.put("topic", request.getTopic());
+                essayData.put("minWords", request.getMinWords());
+                essayData.put("maxWords", request.getMaxWords());
+                essayData.put("instructions", request.getInstructions());
+                questionDataJson = mapper.writeValueAsString(essayData);
+            } else if (request.getQuestionType() == com.example.online_learning.constants.QuestionType.REORDER) {
+                // Lưu danh sách items
+                if (request.getItems() != null && !request.getItems().isEmpty()) {
+                    questionDataJson = mapper.writeValueAsString(request.getItems());
+                }
+            } else if (request.getQuestionType() == com.example.online_learning.constants.QuestionType.MATCHING) {
+                // Lưu cột A và B
+                java.util.Map<String, Object> matchingData = new java.util.HashMap<>();
+                matchingData.put("columnA", request.getColumnA());
+                matchingData.put("columnB", request.getColumnB());
+                questionDataJson = mapper.writeValueAsString(matchingData);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error processing question data: " + e.getMessage(), e);
+        }
+
+        Question question = Question.builder()
+                .assignment(assignment)
+                .questionText(request.getQuestionText())
+                .questionType(request.getQuestionType())
+                .optionA(null) // Writing questions không cần options
+                .optionB(null)
+                .optionC(null)
+                .optionD(null)
+                .correctAnswer(request.getSampleAnswer()) // Lưu đáp án mẫu vào correctAnswer (optional)
+                .orderIndex(request.getOrderIndex())
+                .points(request.getPoints() != null ? request.getPoints() : 1)
+                .questionData(questionDataJson)
+                .build();
+
+        question = questionRepository.save(question);
+        return convertQuestionToDtoRes(question);
+    }
+
+    private QuestionDtoRes convertQuestionToDtoRes(Question question) {
+        QuestionDtoRes.QuestionDtoResBuilder builder = QuestionDtoRes.builder()
+                .questionId(question.getQuestionId())
+                .assignmentId(question.getAssignment().getAssignmentId())
+                .questionText(question.getQuestionText())
+                .questionType(question.getQuestionType())
+                .optionA(question.getOptionA())
+                .optionB(question.getOptionB())
+                .optionC(question.getOptionC())
+                .optionD(question.getOptionD())
+                .correctAnswer(question.getCorrectAnswer())
+                .orderIndex(question.getOrderIndex())
+                .points(question.getPoints());
+
+        // Parse questionData nếu có
+        if (question.getQuestionData() != null && !question.getQuestionData().isEmpty()) {
+            try {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                
+                if (question.getQuestionType() == com.example.online_learning.constants.QuestionType.REORDER) {
+                    // Parse items list
+                    java.util.List<String> items = mapper.readValue(question.getQuestionData(), 
+                            mapper.getTypeFactory().constructCollectionType(java.util.List.class, String.class));
+                    builder.items(items);
+                } else if (question.getQuestionType() == com.example.online_learning.constants.QuestionType.MATCHING) {
+                    // Parse matching columns
+                    com.fasterxml.jackson.databind.JsonNode jsonNode = mapper.readTree(question.getQuestionData());
+                    if (jsonNode.has("columnA")) {
+                        java.util.List<QuestionDtoRes.MatchingItemDto> columnA = 
+                                mapper.convertValue(jsonNode.get("columnA"), 
+                                        mapper.getTypeFactory().constructCollectionType(java.util.List.class, 
+                                                QuestionDtoRes.MatchingItemDto.class));
+                        builder.columnA(columnA);
+                    }
+                    if (jsonNode.has("columnB")) {
+                        java.util.List<QuestionDtoRes.MatchingItemDto> columnB = 
+                                mapper.convertValue(jsonNode.get("columnB"), 
+                                        mapper.getTypeFactory().constructCollectionType(java.util.List.class, 
+                                                QuestionDtoRes.MatchingItemDto.class));
+                        builder.columnB(columnB);
+                    }
+                } else if (question.getQuestionType() == com.example.online_learning.constants.QuestionType.ESSAY_WRITING) {
+                    // Parse essay data
+                    com.fasterxml.jackson.databind.JsonNode jsonNode = mapper.readTree(question.getQuestionData());
+                    if (jsonNode.has("topic")) {
+                        builder.topic(jsonNode.get("topic").asText());
+                    }
+                    if (jsonNode.has("minWords")) {
+                        builder.minWords(jsonNode.get("minWords").asInt());
+                    }
+                    if (jsonNode.has("maxWords")) {
+                        builder.maxWords(jsonNode.get("maxWords").asInt());
+                    }
+                    if (jsonNode.has("instructions")) {
+                        builder.instructions(jsonNode.get("instructions").asText());
+                    }
+                }
+            } catch (Exception e) {
+                // Nếu parse lỗi, chỉ log warning, không throw exception
+                System.err.println("Warning: Could not parse questionData for question " + question.getQuestionId() + ": " + e.getMessage());
+            }
+        }
+
+        return builder.build();
     }
 
     private void validateFile(MultipartFile file) {

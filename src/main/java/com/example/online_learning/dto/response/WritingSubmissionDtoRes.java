@@ -1,6 +1,5 @@
 package com.example.online_learning.dto.response;
 
-import com.example.online_learning.constants.SubmissionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,17 +12,16 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SubmissionDetailDtoRes {
+public class WritingSubmissionDtoRes {
     private Long submissionId;
     private Long assignmentId;
-    private String assignmentTitle;
     private Long studentId;
     private String studentName;
     private String studentEmail;
-    private List<AnswerDetailDtoRes> studentAnswers;
+    private LocalDateTime submittedAt;
     private Integer score;
     private Integer maxScore;
-    private SubmissionStatus status;
-    private LocalDateTime submittedAt;
-    private List<FeedbackDtoRes> feedbacks;
+    private String status; // SUBMITTED, GRADED, NEEDS_REVISION
+    private String feedback;
+    private List<WritingAnswerDetailDtoRes> answers; // Chi tiết từng câu trả lời
 }
