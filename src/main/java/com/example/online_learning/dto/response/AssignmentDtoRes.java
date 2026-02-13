@@ -1,5 +1,6 @@
 package com.example.online_learning.dto.response;
 
+import com.example.online_learning.constants.AssignmentType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,4 +21,6 @@ public class AssignmentDtoRes {
     private LocalDateTime dueDate;
 
     private Integer orderIndex;
+    
+    private AssignmentType assignmentType; // QUIZ hoặc WRITING
 }

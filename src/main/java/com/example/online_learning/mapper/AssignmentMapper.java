@@ -20,6 +20,7 @@ public class AssignmentMapper {
         dto.setCourseId(assignment.getCourse().getCourseId());
         dto.setMaxScore(assignment.getMaxScore());
         dto.setOrderIndex(assignment.getOrderIndex());
+        dto.setAssignmentType(assignment.getAssignmentType());
         return dto;
     }
 
@@ -38,6 +39,8 @@ public class AssignmentMapper {
         a.setDescription(dto.getDescription());
         a.setDueDate(dto.getDueDate());
         a.setMaxScore(dto.getMaxScore());
+        // Nếu không có assignmentType, mặc định là QUIZ
+        a.setAssignmentType(dto.getAssignmentType() != null ? dto.getAssignmentType() : com.example.online_learning.constants.AssignmentType.QUIZ);
         return a;
     }
 }

@@ -2,12 +2,13 @@ package com.example.online_learning.controller;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.example.online_learning.dto.request.AssignmentDtoReq;
-import com.example.online_learning.dto.request.GradeSubmissionDtoReq;
+import com.example.online_learning.dto.request.GradeWritingSubmissionDtoReq;
 import com.example.online_learning.dto.request.SubmitAnswersDtoReq;
+import com.example.online_learning.dto.request.SubmitWritingAnswersDtoReq;
+import com.example.online_learning.dto.request.WritingQuestionDtoReq;
 import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.AssignmentService;
 import com.example.online_learning.service.AssignmentSubmissionService;
-import com.example.online_learning.service.FeedbackService;
 import com.example.online_learning.service.QuestionService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.MediaType;
@@ -24,18 +25,15 @@ public class AssignmentController {
 
     private final AssignmentService assignmentService;
     private final AssignmentSubmissionService submissionService;
-    private final FeedbackService feedbackService;
     private final QuestionService questionService;
 
     public AssignmentController(
             AssignmentService assignmentService,
             AssignmentSubmissionService submissionService,
-            FeedbackService feedbackService,
             QuestionService questionService
     ) {
         this.assignmentService = assignmentService;
         this.submissionService = submissionService;
-        this.feedbackService = feedbackService;
         this.questionService = questionService;
     }
 
@@ -54,23 +52,8 @@ public class AssignmentController {
     }
 
     @Operation(
-            summary = "Submit assignment",
-            description = "Học sinh nộp bài assignment dạng text"
-    )
-    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
-    @PostMapping("/{assignmentId}/submit")
-    public ResponseEntity<?> submitAssignment(
-            @PathVariable Long assignmentId,
-            @AuthenticationPrincipal CustomUserDetail userDetail,
-            @RequestBody String content
-    ) {
-        submissionService.submit(assignmentId, userDetail, content);
-        return ResponseEntity.ok("Submit assignment successfully!");
-    }
-
-    @Operation(
             summary = "Submit quiz",
-            description = "Submit đáp án quiz, chờ giáo viên chấm điểm thủ công"
+            description = "Học sinh nộp đáp án quiz và nhận kết quả ngay lập tức. Có thể nộp lại để cải thiện điểm số."
     )
     @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
     @PostMapping("/{assignmentId}/submit-quiz")
@@ -99,54 +82,6 @@ public class AssignmentController {
         );
     }
 
-    @Operation(
-            summary = "Chấm bài quiz",
-            description = "TEACHER / ADMIN chấm điểm quiz và nhận xét submission. Tự động tính isCorrect và pointsEarned. Luôn set status = GRADED."
-    )
-    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
-    @PostMapping("/submissions/{submissionId}/grade")
-    public ResponseEntity<?> gradeQuiz(
-            @PathVariable Long submissionId,
-            @AuthenticationPrincipal CustomUserDetail userDetail,
-            @RequestBody GradeSubmissionDtoReq request
-    ) {
-        feedbackService.gradeQuizSubmission(
-                submissionId,
-                userDetail,
-                request.getScore(),
-                request.getComment(),
-                request.getGradedContent()
-        );
-        return ResponseEntity.ok("Grade submission successfully!");
-    }
-
-    @Operation(
-            summary = "Xem danh sách bài nộp",
-            description = "TEACHER / ADMIN xem danh sách tất cả bài nộp của một assignment"
-    )
-    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
-    @GetMapping("/{assignmentId}/submissions")
-    public ResponseEntity<?> getSubmissionsByAssignment(
-            @PathVariable Long assignmentId
-    ) {
-        return ResponseEntity.ok(
-                submissionService.getSubmissionsByAssignment(assignmentId)
-        );
-    }
-
-    @Operation(
-            summary = "Xem chi tiết bài làm",
-            description = "TEACHER / ADMIN xem chi tiết bài làm của học sinh, bao gồm câu hỏi, đáp án, và feedback"
-    )
-    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
-    @GetMapping("/submissions/{submissionId}")
-    public ResponseEntity<?> getSubmissionDetail(
-            @PathVariable Long submissionId
-    ) {
-        return ResponseEntity.ok(
-                submissionService.getSubmissionDetail(submissionId)
-        );
-    }
 
     @Operation(
             summary = "Xem assignment",
@@ -204,6 +139,100 @@ public class AssignmentController {
     ) {
         return ResponseEntity.ok(
                 questionService.uploadQuestionsFromExcel(assignmentId, file)
+        );
+    }
+
+    // ========== WRITING ASSIGNMENT ENDPOINTS ==========
+
+    @Operation(
+            summary = "Tạo câu hỏi điền vào chỗ trống",
+            description = "COURSE_MANAGER tạo câu hỏi fill-in-the-blank cho writing assignment"
+    )
+    @PreAuthorize("hasAnyRole('COURSE_MANAGER','ADMIN')")
+    @PostMapping("/{assignmentId}/writing-questions")
+    public ResponseEntity<?> createWritingQuestion(
+            @PathVariable Long assignmentId,
+            @RequestBody WritingQuestionDtoReq request
+    ) {
+        return ResponseEntity.ok(
+                questionService.createWritingQuestion(assignmentId, request)
+        );
+    }
+
+    @Operation(
+            summary = "Học sinh nộp bài writing assignment",
+            description = "Học sinh nộp đáp án điền vào chỗ trống. Giáo viên sẽ chấm thủ công sau đó."
+    )
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
+    @PostMapping("/{assignmentId}/submit-writing")
+    public ResponseEntity<?> submitWritingAnswers(
+            @PathVariable Long assignmentId,
+            @AuthenticationPrincipal CustomUserDetail userDetail,
+            @RequestBody SubmitWritingAnswersDtoReq request
+    ) {
+        return ResponseEntity.ok(
+                submissionService.submitWritingAnswers(assignmentId, userDetail, request)
+        );
+    }
+
+    @Operation(
+            summary = "Xem danh sách submissions của writing assignment",
+            description = "COURSE_MANAGER / ADMIN / TEACHER xem tất cả submissions của học sinh (chỉ xem, không chấm điểm)"
+    )
+    @PreAuthorize("hasAnyRole('COURSE_MANAGER','ADMIN','TEACHER')")
+    @GetMapping("/{assignmentId}/writing-submissions")
+    public ResponseEntity<?> getWritingSubmissions(
+            @PathVariable Long assignmentId,
+            @AuthenticationPrincipal CustomUserDetail userDetail
+    ) {
+        return ResponseEntity.ok(
+                submissionService.getWritingSubmissions(assignmentId, userDetail)
+        );
+    }
+
+    @Operation(
+            summary = "Giáo viên xem chi tiết submission để chấm điểm",
+            description = "Chỉ TEACHER mới xem được chi tiết submission để chấm điểm"
+    )
+    @PreAuthorize("hasRole('TEACHER')")
+    @GetMapping("/writing-submissions/{submissionId}")
+    public ResponseEntity<?> getWritingSubmission(
+            @PathVariable Long submissionId,
+            @AuthenticationPrincipal CustomUserDetail userDetail
+    ) {
+        return ResponseEntity.ok(
+                submissionService.getWritingSubmission(submissionId, userDetail)
+        );
+    }
+
+    @Operation(
+            summary = "Giáo viên chấm điểm writing assignment",
+            description = "Chỉ TEACHER mới được chấm điểm thủ công cho writing assignment submission"
+    )
+    @PreAuthorize("hasRole('TEACHER')")
+    @PostMapping("/writing-submissions/{submissionId}/grade")
+    public ResponseEntity<?> gradeWritingSubmission(
+            @PathVariable Long submissionId,
+            @AuthenticationPrincipal CustomUserDetail userDetail,
+            @RequestBody GradeWritingSubmissionDtoReq request
+    ) {
+        return ResponseEntity.ok(
+                submissionService.gradeWritingSubmission(submissionId, userDetail, request)
+        );
+    }
+
+    @Operation(
+            summary = "Học sinh xem kết quả writing assignment",
+            description = "Học sinh xem kết quả sau khi giáo viên đã chấm điểm. Chỉ xem được khi status = GRADED"
+    )
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
+    @GetMapping("/{assignmentId}/writing-result")
+    public ResponseEntity<?> getWritingResult(
+            @PathVariable Long assignmentId,
+            @AuthenticationPrincipal CustomUserDetail userDetail
+    ) {
+        return ResponseEntity.ok(
+                submissionService.getWritingResult(assignmentId, userDetail)
         );
     }
 }

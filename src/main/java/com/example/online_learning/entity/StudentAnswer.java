@@ -24,7 +24,8 @@ public class StudentAnswer {
     @JoinColumn(name = "question_id", nullable = false)
     private Question question;
 
-    @Column(nullable = false, length = 1)
+    // Cho QUIZ: A, B, C, hoặc D. Cho WRITING: text answer (điền vào chỗ trống)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String studentAnswer;
 
     private Boolean isCorrect;
