@@ -31,7 +31,7 @@ public class EnrollmentController {
 
     private final EnrollmentService enrollmentService;
 
-    // ================= ENROLL STUDENT =================
+   
     @Operation(
             summary = "Ghi danh học viên vào khoá học",
             description = """
@@ -56,7 +56,7 @@ public class EnrollmentController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    // ================= UNENROLL STUDENT =================
+    
     @Operation(
             summary = "Huỷ ghi danh học viên khỏi khoá học",
             description = """
@@ -91,13 +91,13 @@ public class EnrollmentController {
         return ResponseEntity.ok().build();
     }
 
-    // ================= GET STUDENTS BY COURSE =================
+  
     @Operation(
             summary = "Lấy danh sách học viên của khoá học",
             description = """
                     API trả về danh sách học viên đã ghi danh vào một khoá học.
                     
-                    🔐 Chỉ ADMIN hoặc COURSE_MANAGER được phép.
+                    🔐 Chỉ ADMIN, COURSE_MANAGER hoặc TEACHER được phép.
                     """
     )
     @ApiResponses({
@@ -105,7 +105,7 @@ public class EnrollmentController {
             @ApiResponse(responseCode = "404", description = "Không tìm thấy khoá học"),
             @ApiResponse(responseCode = "403", description = "Không có quyền truy cập")
     })
-    @PreAuthorize("hasAnyRole('ADMIN','COURSE_MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN','COURSE_MANAGER','TEACHER')")
     @GetMapping("/courses/{courseId}/students")
     public ResponseEntity<List<EnrolledStudentDtoRes>> getEnrolledStudents(
             @Parameter(
@@ -120,7 +120,7 @@ public class EnrollmentController {
         return ResponseEntity.ok(students);
     }
 
-    // ================= GET COURSES BY USERNAME =================
+   
     @Operation(
             summary = "Lấy danh sách khoá học của học viên (theo username)",
             description = """
@@ -147,7 +147,7 @@ public class EnrollmentController {
         return ResponseEntity.ok(courses);
     }
 
-    // ================= GET MY COURSES =================
+   
     @Operation(
             summary = "Lấy danh sách khoá học của học viên đang đăng nhập",
             description = """

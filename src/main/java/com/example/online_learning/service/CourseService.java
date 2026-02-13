@@ -13,4 +13,5 @@ public interface CourseService {
     public List<CourseDtoRes> getAllCourses();
     public List<CourseDtoRes> findCoursesByPublicTrue();
     public List<CourseDtoRes> getMyCourses(CustomUserDetail userDetail);
+    public void deleteInactiveCoursePermanently(Long courseId);
 }

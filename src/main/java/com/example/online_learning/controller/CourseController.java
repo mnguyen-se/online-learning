@@ -174,4 +174,35 @@ public class CourseController {
     ) {
         return ResponseEntity.ok(courseService.getMyCourses(userDetail));
     }
+
+    @Operation(
+            summary = "Xóa vĩnh viễn khóa học không hoạt động",
+            description = """
+                    API dùng để xóa vĩnh viễn khóa học có isPublic = false.
+                    Chỉ cho phép xóa các khóa học không hoạt động.
+                    
+                    ⚠️ Hành động này không thể hoàn tác!
+                    
+                    🔐 Chỉ COURSE_MANAGER hoặc ADMIN mới được phép.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Xóa khóa học thành công"),
+            @ApiResponse(responseCode = "400", description = "Không thể xóa khóa học đang hoạt động"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy khóa học"),
+            @ApiResponse(responseCode = "403", description = "Không có quyền truy cập")
+    })
+    @PreAuthorize("hasAnyRole('COURSE_MANAGER','ADMIN')")
+    @DeleteMapping("/{id}/permanent")
+    public ResponseEntity<Void> deleteInactiveCoursePermanently(
+            @Parameter(
+                    description = "ID của khóa học cần xóa",
+                    example = "1",
+                    required = true
+            )
+            @PathVariable("id") Long courseId
+    ) {
+        courseService.deleteInactiveCoursePermanently(courseId);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -36,16 +36,18 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         User student = userRepository.findByUserName(request.getUsername())
                 .orElseThrow(() -> new NotFoundException("Student not found with username: " + request.getUsername()));
 
-
         if (student.getRole() != UserRole.STUDENT) {
             throw new IllegalArgumentException("User is not a student");
         }
 
-
-        if (!courseRepository.existsById(request.getCourseId())) {
+        Course course = courseRepository.findByCourseId(request.getCourseId());
+        if (course == null) {
             throw new NotFoundException("Course not found with id: " + request.getCourseId());
         }
 
+        if (!course.getIsPublic()) {
+            throw new IllegalArgumentException("Cannot enroll student to inactive course (isPublic = false)");
+        }
 
         if (enrollmentRepository.findByUser_UserNameAndCourse_CourseIdAndDeletedFalse(
                 request.getUsername(), request.getCourseId()
@@ -53,12 +55,10 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             throw new IllegalArgumentException("Student is already enrolled in this course");
         }
 
-
         enrollmentRepository.findByUser_UserIdAndCourse_CourseId(
                 student.getUserId(), request.getCourseId()
         ).ifPresentOrElse(
                 enrollment -> {
-
                     if (enrollment.getDeleted()) {
                         enrollment.setDeleted(false);
                         enrollment.setStatus(EnrollmentStatus.ACTIVE);
@@ -66,10 +66,9 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                     }
                 },
                 () -> {
-
                     Enrollment newEnrollment = Enrollment.builder()
                             .user(student)
-                            .course(courseRepository.getReferenceById(request.getCourseId()))
+                            .course(course)
                             .status(EnrollmentStatus.ACTIVE)
                             .deleted(false)
                             .build();
