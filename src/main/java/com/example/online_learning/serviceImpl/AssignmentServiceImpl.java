@@ -4,10 +4,12 @@ import com.example.online_learning.dto.request.AssignmentDtoReq;
 import com.example.online_learning.dto.response.AssignmentDtoRes;
 import com.example.online_learning.entity.Assignment;
 import com.example.online_learning.entity.Course;
+import com.example.online_learning.entity.Enrollment;
 import com.example.online_learning.exception.NotFoundException;
 import com.example.online_learning.mapper.AssignmentMapper;
 import com.example.online_learning.repository.AssignmentRepository;
 import com.example.online_learning.repository.CourseRepository;
+import com.example.online_learning.repository.EnrollmentRepository;
 import com.example.online_learning.service.AssignmentService;
 import org.springframework.stereotype.Service;
 
@@ -19,11 +21,13 @@ public class AssignmentServiceImpl implements AssignmentService {
 
     private final AssignmentRepository assignmentRepository;
     private final CourseRepository courseRepository;
+    private final EnrollmentRepository enrollmentRepository;
     private final AssignmentMapper assignmentMapper;
 
-    public AssignmentServiceImpl(AssignmentRepository assignmentRepository, CourseRepository courseRepository, AssignmentMapper assignmentMapper) {
+    public AssignmentServiceImpl(AssignmentRepository assignmentRepository, CourseRepository courseRepository, EnrollmentRepository enrollmentRepository, AssignmentMapper assignmentMapper) {
         this.assignmentRepository = assignmentRepository;
         this.courseRepository = courseRepository;
+        this.enrollmentRepository = enrollmentRepository;
         this.assignmentMapper = assignmentMapper;
     }
 
@@ -58,6 +62,24 @@ public class AssignmentServiceImpl implements AssignmentService {
     public List<AssignmentDtoRes> findByCourseId(Long courseId) {
 
         List<Assignment> assignments = assignmentRepository.findByCourse_CourseId(courseId);
+        return assignments.stream()
+                .map(assignmentMapper::toDtoRes)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AssignmentDtoRes> findMyAssignments(Long userId) {
+        List<Enrollment> enrollments = enrollmentRepository.findByUser_UserIdAndDeletedFalse(userId);
+        if (enrollments.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> courseIds = enrollments.stream()
+                .map(enrollment -> enrollment.getCourse().getCourseId())
+                .distinct()
+                .collect(Collectors.toList());
+
+        List<Assignment> assignments = assignmentRepository.findByCourse_CourseIdIn(courseIds);
         return assignments.stream()
                 .map(assignmentMapper::toDtoRes)
                 .collect(Collectors.toList());

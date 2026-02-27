@@ -2,11 +2,13 @@ package com.example.online_learning.serviceImpl;
 
 import com.example.online_learning.constants.AssignmentType;
 import com.example.online_learning.constants.SubmissionStatus;
+import com.example.online_learning.dto.request.GradeQuizSubmissionDtoReq;
 import com.example.online_learning.dto.request.GradeWritingSubmissionDtoReq;
 import com.example.online_learning.dto.request.SubmitAnswersDtoReq;
 import com.example.online_learning.dto.request.SubmitWritingAnswersDtoReq;
 import com.example.online_learning.dto.response.AnswerDetailDtoRes;
 import com.example.online_learning.dto.response.QuizResultDtoRes;
+import com.example.online_learning.dto.response.QuizSubmissionDtoRes;
 import com.example.online_learning.dto.response.WritingAnswerDetailDtoRes;
 import com.example.online_learning.dto.response.WritingSubmissionDtoRes;
 import com.example.online_learning.entity.Assignment;
@@ -18,6 +20,7 @@ import com.example.online_learning.entity.User;
 import com.example.online_learning.exception.NotFoundException;
 import com.example.online_learning.repository.AssignmentRepository;
 import com.example.online_learning.repository.AssignmentSubmissionRepository;
+import com.example.online_learning.repository.EnrollmentRepository;
 import com.example.online_learning.repository.QuestionRepository;
 import com.example.online_learning.repository.StudentAnswerRepository;
 import com.example.online_learning.repository.UserRepository;
@@ -40,6 +43,7 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
     private final UserRepository userRepo;
     private final QuestionRepository questionRepository;
     private final StudentAnswerRepository studentAnswerRepository;
+    private final EnrollmentRepository enrollmentRepository;
     private final EmailService emailService;
 
     public AssignmentSubmissionServiceImpl(
@@ -48,12 +52,14 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
             UserRepository userRepo,
             QuestionRepository questionRepository,
             StudentAnswerRepository studentAnswerRepository,
+            EnrollmentRepository enrollmentRepository,
             EmailService emailService) {
         this.submissionRepo = submissionRepo;
         this.assignmentRepo = assignmentRepo;
         this.userRepo = userRepo;
         this.questionRepository = questionRepository;
         this.studentAnswerRepository = studentAnswerRepository;
+        this.enrollmentRepository = enrollmentRepository;
         this.emailService = emailService;
     }
 
@@ -62,9 +68,13 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
     public QuizResultDtoRes submitQuizAnswers(Long assignmentId, CustomUserDetail userDetail, SubmitAnswersDtoReq request) {
         Assignment assignment = assignmentRepo.findById(assignmentId)
                 .orElseThrow(() -> new NotFoundException("Assignment not found with id: " + assignmentId));
+        if (assignment.getAssignmentType() != AssignmentType.QUIZ) {
+            throw new IllegalArgumentException("This assignment is not a QUIZ type assignment");
+        }
 
         User student = userRepo.findById(userDetail.getUser().getUserId())
                 .orElseThrow(() -> new NotFoundException("User not found"));
+        validateStudentEnrollment(student.getUserId(), assignment.getCourse().getCourseId());
 
         List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignmentId);
         if (questions.isEmpty()) {
@@ -93,10 +103,12 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
             submission.setStudent(student);
         }
         submission.setSubmittedAt(LocalDateTime.now());
+        submission.setStatus(SubmissionStatus.SUBMITTED);
+        submission.setScore(null);
+        submission = submissionRepo.save(submission);
 
         List<StudentAnswer> studentAnswers = new ArrayList<>();
         List<Long> notFoundQuestionIds = new ArrayList<>();
-        int totalScore = 0;
 
         for (SubmitAnswersDtoReq.AnswerDto answerDto : request.getAnswers()) {
             Question question = questionMap.get(answerDto.getQuestionId());
@@ -110,17 +122,12 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 throw new RuntimeException("Đáp án không được để trống cho questionId: " + answerDto.getQuestionId());
             }
 
-            String correctAnswerStr = question.getCorrectAnswer().toUpperCase().trim();
-            boolean isCorrect = studentAnswerStr.equals(correctAnswerStr);
-            int pointsEarned = isCorrect ? (question.getPoints() != null ? question.getPoints() : 1) : 0;
-            totalScore += pointsEarned;
-
             StudentAnswer studentAnswer = StudentAnswer.builder()
                     .submission(submission)
                     .question(question)
                     .studentAnswer(studentAnswerStr)
-                    .isCorrect(isCorrect)
-                    .pointsEarned(pointsEarned)
+                    .isCorrect(null)
+                    .pointsEarned(null)
                     .build();
 
             studentAnswers.add(studentAnswer);
@@ -134,45 +141,19 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
             throw new RuntimeException("Không có đáp án hợp lệ nào được tạo. Vui lòng kiểm tra lại questionId trong request.");
         }
 
-        submission.setStatus(SubmissionStatus.GRADED);
-        submission.setScore(totalScore);
-        submission = submissionRepo.save(submission);
-
         studentAnswerRepository.saveAll(studentAnswers);
 
         int maxScore = questions.stream()
-                .mapToInt(q -> q.getPoints() != null ? q.getPoints() : 1)
+                .mapToInt(q -> q.getPoints() != null ? q.getPoints() : 5)
                 .sum();
-
-        double percentage = maxScore > 0 ? (totalScore * 100.0 / maxScore) : 0.0;
-
-        List<AnswerDetailDtoRes> details = new ArrayList<>();
-        for (StudentAnswer studentAnswer : studentAnswers) {
-            Question question = questionMap.get(studentAnswer.getQuestion().getQuestionId());
-            if (question == null) continue;
-
-            details.add(AnswerDetailDtoRes.builder()
-                    .questionId(question.getQuestionId())
-                    .questionText(question.getQuestionText())
-                    .optionA(question.getOptionA())
-                    .optionB(question.getOptionB())
-                    .optionC(question.getOptionC())
-                    .optionD(question.getOptionD())
-                    .studentAnswer(studentAnswer.getStudentAnswer())
-                    .correctAnswer(question.getCorrectAnswer())
-                    .isCorrect(studentAnswer.getIsCorrect())
-                    .points(question.getPoints() != null ? question.getPoints() : 1)
-                    .pointsEarned(studentAnswer.getPointsEarned())
-                    .build());
-        }
 
         return QuizResultDtoRes.builder()
                 .submissionId(submission.getSubmissionId())
                 .assignmentId(assignmentId)
-                .score(totalScore)
+                .score(null)
                 .maxScore(maxScore)
-                .percentage(Math.round(percentage * 100.0) / 100.0)
-                .details(details)
+                .percentage(null)
+                .details(new ArrayList<>())
                 .feedbacks(new ArrayList<>())
                 .build();
     }
@@ -182,19 +163,26 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
     public QuizResultDtoRes getQuizResult(Long assignmentId, CustomUserDetail userDetail) {
         Assignment assignment = assignmentRepo.findById(assignmentId)
                 .orElseThrow(() -> new NotFoundException("Assignment not found with id: " + assignmentId));
+        if (assignment.getAssignmentType() != AssignmentType.QUIZ) {
+            throw new IllegalArgumentException("This assignment is not a QUIZ type assignment");
+        }
 
         User student = userRepo.findById(userDetail.getUser().getUserId())
                 .orElseThrow(() -> new NotFoundException("User not found"));
+        validateStudentEnrollment(student.getUserId(), assignment.getCourse().getCourseId());
 
         AssignmentSubmission submission = submissionRepo
                 .findByAssignment_AssignmentIdAndStudent_UserId(assignmentId, student.getUserId())
                 .orElseThrow(() -> new NotFoundException("Bạn chưa nộp bài cho assignment này"));
+        if (submission.getStatus() != SubmissionStatus.GRADED) {
+            throw new RuntimeException("Bài làm của bạn chưa được giáo viên chấm điểm. Vui lòng chờ giáo viên chấm.");
+        }
 
         List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignmentId);
         List<StudentAnswer> studentAnswers = studentAnswerRepository.findBySubmission_SubmissionId(submission.getSubmissionId());
 
         int maxScore = questions.stream()
-                .mapToInt(q -> q.getPoints() != null ? q.getPoints() : 1)
+                .mapToInt(q -> q.getPoints() != null ? q.getPoints() : 5)
                 .sum();
 
         double percentage = maxScore > 0 && submission.getScore() != null 
@@ -221,7 +209,7 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                     .studentAnswer(studentAnswer.getStudentAnswer())
                     .correctAnswer(question.getCorrectAnswer())
                     .isCorrect(studentAnswer.getIsCorrect())
-                    .points(question.getPoints() != null ? question.getPoints() : 1)
+                    .points(question.getPoints() != null ? question.getPoints() : 5)
                     .pointsEarned(studentAnswer.getPointsEarned())
                     .build());
         }
@@ -230,6 +218,138 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 .submissionId(submission.getSubmissionId())
                 .assignmentId(assignmentId)
                 .score(submission.getScore())
+                .maxScore(maxScore)
+                .percentage(Math.round(percentage * 100.0) / 100.0)
+                .details(details)
+                .feedbacks(new ArrayList<>())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<QuizSubmissionDtoRes> getQuizSubmissions(Long assignmentId, CustomUserDetail userDetail) {
+        Assignment assignment = assignmentRepo.findById(assignmentId)
+                .orElseThrow(() -> new NotFoundException("Assignment not found with id: " + assignmentId));
+        if (assignment.getAssignmentType() != AssignmentType.QUIZ) {
+            throw new IllegalArgumentException("This assignment is not a QUIZ type assignment");
+        }
+
+        List<AssignmentSubmission> submissions = submissionRepo.findByAssignment_AssignmentId(assignmentId);
+        List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignmentId);
+
+        return submissions.stream()
+                .map(submission -> buildQuizSubmissionDtoRes(submission, questions))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public QuizSubmissionDtoRes getQuizSubmission(Long submissionId, CustomUserDetail userDetail) {
+        AssignmentSubmission submission = submissionRepo.findById(submissionId)
+                .orElseThrow(() -> new NotFoundException("Submission not found with id: " + submissionId));
+        Assignment assignment = submission.getAssignment();
+        if (assignment.getAssignmentType() != AssignmentType.QUIZ) {
+            throw new IllegalArgumentException("This submission is not for a QUIZ type assignment");
+        }
+
+        User currentUser = userRepo.findById(userDetail.getUser().getUserId())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        Course course = assignment.getCourse();
+        if (course.getTeacher() == null || !course.getTeacher().getUserId().equals(currentUser.getUserId())) {
+            throw new RuntimeException("Bạn không phải là giáo viên của khóa học này");
+        }
+
+        List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignment.getAssignmentId());
+        return buildQuizSubmissionDtoRes(submission, questions);
+    }
+
+    @Override
+    @Transactional
+    public QuizResultDtoRes gradeQuizSubmission(Long submissionId, CustomUserDetail userDetail, GradeQuizSubmissionDtoReq request) {
+        AssignmentSubmission submission = submissionRepo.findById(submissionId)
+                .orElseThrow(() -> new NotFoundException("Submission not found with id: " + submissionId));
+        Assignment assignment = submission.getAssignment();
+        if (assignment.getAssignmentType() != AssignmentType.QUIZ) {
+            throw new IllegalArgumentException("This submission is not for a QUIZ type assignment");
+        }
+
+        User currentUser = userRepo.findById(userDetail.getUser().getUserId())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        Course course = assignment.getCourse();
+        if (course.getTeacher() == null || !course.getTeacher().getUserId().equals(currentUser.getUserId())) {
+            throw new RuntimeException("Bạn không phải là giáo viên của khóa học này");
+        }
+
+        submission.setScore(request.getScore());
+        submission.setStatus(SubmissionStatus.GRADED);
+        if (request.getFeedback() != null && !request.getFeedback().trim().isEmpty()) {
+            submission.setContent(request.getFeedback());
+        }
+        submission = submissionRepo.save(submission);
+
+        List<StudentAnswer> studentAnswers = studentAnswerRepository.findBySubmission_SubmissionId(submissionId);
+        Map<Long, StudentAnswer> answerMap = studentAnswers.stream()
+                .collect(Collectors.toMap(StudentAnswer::getAnswerId, sa -> sa));
+
+        for (GradeQuizSubmissionDtoReq.AnswerGradeDto answerGrade : request.getAnswerGrades()) {
+            StudentAnswer studentAnswer = answerMap.get(answerGrade.getAnswerId());
+            if (studentAnswer == null) {
+                throw new NotFoundException("Student answer not found with id: " + answerGrade.getAnswerId());
+            }
+            studentAnswer.setPointsEarned(answerGrade.getPointsEarned());
+            studentAnswer.setIsCorrect(answerGrade.getIsCorrect());
+            studentAnswerRepository.save(studentAnswer);
+        }
+
+        List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignment.getAssignmentId());
+        List<StudentAnswer> updatedAnswers = studentAnswerRepository.findBySubmission_SubmissionId(submissionId);
+        Map<Long, StudentAnswer> updatedAnswerMap = updatedAnswers.stream()
+                .collect(Collectors.toMap(sa -> sa.getQuestion().getQuestionId(), sa -> sa));
+
+        int maxScore = questions.stream()
+                .mapToInt(q -> q.getPoints() != null ? q.getPoints() : 5)
+                .sum();
+        double percentage = maxScore > 0 ? (request.getScore() * 100.0 / maxScore) : 0.0;
+
+        List<AnswerDetailDtoRes> details = new ArrayList<>();
+        for (Question question : questions) {
+            StudentAnswer studentAnswer = updatedAnswerMap.get(question.getQuestionId());
+            if (studentAnswer == null) {
+                continue;
+            }
+            details.add(AnswerDetailDtoRes.builder()
+                    .questionId(question.getQuestionId())
+                    .questionText(question.getQuestionText())
+                    .optionA(question.getOptionA())
+                    .optionB(question.getOptionB())
+                    .optionC(question.getOptionC())
+                    .optionD(question.getOptionD())
+                    .studentAnswer(studentAnswer.getStudentAnswer())
+                    .correctAnswer(question.getCorrectAnswer())
+                    .isCorrect(studentAnswer.getIsCorrect())
+                    .points(question.getPoints() != null ? question.getPoints() : 5)
+                    .pointsEarned(studentAnswer.getPointsEarned())
+                    .build());
+        }
+
+        try {
+            emailService.sendQuizResult(
+                    submission.getStudent().getEmail(),
+                    submission.getStudent().getName(),
+                    assignment.getTitle(),
+                    submission.getScore(),
+                    maxScore,
+                    submission.getContent(),
+                    details
+            );
+        } catch (Exception e) {
+            System.err.println("Failed to send quiz email: " + e.getMessage());
+        }
+
+        return QuizResultDtoRes.builder()
+                .submissionId(submission.getSubmissionId())
+                .assignmentId(assignment.getAssignmentId())
+                .score(request.getScore())
                 .maxScore(maxScore)
                 .percentage(Math.round(percentage * 100.0) / 100.0)
                 .details(details)
@@ -250,6 +370,7 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
 
         User student = userRepo.findById(userDetail.getUser().getUserId())
                 .orElseThrow(() -> new NotFoundException("User not found"));
+        validateStudentEnrollment(student.getUserId(), assignment.getCourse().getCourseId());
 
         List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignmentId);
         if (questions.isEmpty()) {
@@ -474,6 +595,7 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
 
         User student = userRepo.findById(userDetail.getUser().getUserId())
                 .orElseThrow(() -> new NotFoundException("User not found"));
+        validateStudentEnrollment(student.getUserId(), assignment.getCourse().getCourseId());
 
         AssignmentSubmission submission = submissionRepo
                 .findByAssignment_AssignmentIdAndStudent_UserId(assignmentId, student.getUserId())
@@ -486,6 +608,59 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
 
         List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignmentId);
         return buildWritingSubmissionDtoRes(submission, questions);
+    }
+
+    private QuizSubmissionDtoRes buildQuizSubmissionDtoRes(AssignmentSubmission submission, List<Question> questions) {
+        List<StudentAnswer> studentAnswers = studentAnswerRepository.findBySubmission_SubmissionId(submission.getSubmissionId());
+        Map<Long, StudentAnswer> answerMap = studentAnswers.stream()
+                .collect(Collectors.toMap(sa -> sa.getQuestion().getQuestionId(), sa -> sa));
+
+        List<AnswerDetailDtoRes> answerDetails = new ArrayList<>();
+        for (Question question : questions) {
+            StudentAnswer studentAnswer = answerMap.get(question.getQuestionId());
+            if (studentAnswer == null) {
+                continue;
+            }
+            answerDetails.add(AnswerDetailDtoRes.builder()
+                    .questionId(question.getQuestionId())
+                    .questionText(question.getQuestionText())
+                    .optionA(question.getOptionA())
+                    .optionB(question.getOptionB())
+                    .optionC(question.getOptionC())
+                    .optionD(question.getOptionD())
+                    .studentAnswer(studentAnswer.getStudentAnswer())
+                    .correctAnswer(question.getCorrectAnswer())
+                    .isCorrect(studentAnswer.getIsCorrect())
+                    .points(question.getPoints() != null ? question.getPoints() : 5)
+                    .pointsEarned(studentAnswer.getPointsEarned())
+                    .build());
+        }
+
+        Integer maxScore = submission.getAssignment().getMaxScore();
+        if (maxScore == null) {
+            maxScore = questions.stream()
+                    .mapToInt(q -> q.getPoints() != null ? q.getPoints() : 5)
+                    .sum();
+        }
+
+        return QuizSubmissionDtoRes.builder()
+                .submissionId(submission.getSubmissionId())
+                .assignmentId(submission.getAssignment().getAssignmentId())
+                .studentId(submission.getStudent().getUserId())
+                .studentName(submission.getStudent().getName())
+                .studentEmail(submission.getStudent().getEmail())
+                .submittedAt(submission.getSubmittedAt())
+                .score(submission.getScore())
+                .maxScore(maxScore)
+                .status(submission.getStatus() != null ? submission.getStatus().name() : SubmissionStatus.SUBMITTED.name())
+                .feedback(submission.getContent() != null ? submission.getContent() : "")
+                .answers(answerDetails)
+                .build();
+    }
+
+    private void validateStudentEnrollment(Long studentId, Long courseId) {
+        enrollmentRepository.findByUser_UserIdAndCourse_CourseIdAndDeletedFalse(studentId, courseId)
+                .orElseThrow(() -> new RuntimeException("Bạn chưa enroll khóa học này"));
     }
 
     private WritingSubmissionDtoRes buildWritingSubmissionDtoRes(AssignmentSubmission submission, List<Question> questions) {
@@ -506,7 +681,7 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                     .questionText(question.getQuestionText())
                     .questionType(question.getQuestionType())
                     .studentAnswer(studentAnswer.getStudentAnswer())
-                    .points(question.getPoints() != null ? question.getPoints() : 1)
+                    .points(question.getPoints() != null ? question.getPoints() : 5)
                     .pointsEarned(studentAnswer.getPointsEarned())
                     .isCorrect(studentAnswer.getIsCorrect())
                     .sampleAnswer(question.getCorrectAnswer())

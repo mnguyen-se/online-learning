@@ -321,7 +321,7 @@ public class QuestionServiceImpl implements QuestionService {
                         .optionD(optionD != null ? optionD.trim() : "")
                         .correctAnswer(correctAnswer != null ? correctAnswer.trim() : "")
                         .orderIndex(rowIndex) 
-                        .points(1) 
+                        .points(5) 
                         .build();
 
                 questions.add(question);

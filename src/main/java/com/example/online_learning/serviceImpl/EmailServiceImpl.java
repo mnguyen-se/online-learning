@@ -1,5 +1,6 @@
 package com.example.online_learning.serviceImpl;
 
+import com.example.online_learning.dto.response.AnswerDetailDtoRes;
 import com.example.online_learning.dto.response.WritingAnswerDetailDtoRes;
 import com.example.online_learning.service.EmailService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,7 +67,8 @@ public class EmailServiceImpl implements EmailService {
             emailBody.append("Điểm: ").append(answer.getPointsEarned() != null ? answer.getPointsEarned() : 0)
                      .append("/").append(answer.getPoints()).append("\n");
             
-            if (answer.getIsCorrect() != null) {
+            if (answer.getQuestionType() != com.example.online_learning.constants.QuestionType.ESSAY_WRITING
+                    && answer.getIsCorrect() != null) {
                 emailBody.append("Kết quả: ").append(answer.getIsCorrect() ? "✅ Đúng" : "❌ Sai").append("\n");
             }
             
@@ -87,6 +89,72 @@ public class EmailServiceImpl implements EmailService {
             System.out.println("✅ Email sent successfully to: " + toEmail);
         } catch (Exception e) {
             System.err.println("❌ Email sending failed: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @Override
+    public void sendQuizResult(String toEmail, String studentName,
+                               String assignmentTitle,
+                               Integer score, Integer maxScore,
+                               String feedback,
+                               List<AnswerDetailDtoRes> answers) {
+        System.out.println("=== START SENDING QUIZ EMAIL ===");
+        System.out.println("To Email: " + toEmail);
+        System.out.println("Student Name: " + studentName);
+        System.out.println("Assignment: " + assignmentTitle);
+        System.out.println("Score: " + score + "/" + maxScore);
+
+        if (mailSender == null) {
+            System.err.println("ERROR: JavaMailSender is NULL!");
+            return;
+        }
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("Kết quả quiz: " + assignmentTitle);
+
+        StringBuilder emailBody = new StringBuilder();
+        emailBody.append("Xin chào ").append(studentName).append(",\n\n");
+        emailBody.append("Giáo viên đã chấm điểm cho quiz của bạn:\n\n");
+        emailBody.append("Bài tập: ").append(assignmentTitle).append("\n");
+        emailBody.append("Điểm số: ").append(score).append("/").append(maxScore).append("\n");
+
+        if (feedback != null && !feedback.trim().isEmpty()) {
+            emailBody.append("Nhận xét: ").append(feedback).append("\n");
+        }
+
+        emailBody.append("\nCHI TIẾT TỪNG CÂU HỎI:\n\n");
+
+        int questionNumber = 1;
+        for (AnswerDetailDtoRes answer : answers) {
+            emailBody.append("Câu ").append(questionNumber).append(":\n");
+            emailBody.append("Câu hỏi: ").append(answer.getQuestionText()).append("\n");
+            emailBody.append("A: ").append(answer.getOptionA() != null ? answer.getOptionA() : "").append("\n");
+            emailBody.append("B: ").append(answer.getOptionB() != null ? answer.getOptionB() : "").append("\n");
+            emailBody.append("C: ").append(answer.getOptionC() != null ? answer.getOptionC() : "").append("\n");
+            emailBody.append("D: ").append(answer.getOptionD() != null ? answer.getOptionD() : "").append("\n");
+            emailBody.append("Đáp án của bạn: ").append(answer.getStudentAnswer()).append("\n");
+            emailBody.append("Đáp án đúng: ").append(answer.getCorrectAnswer()).append("\n");
+            emailBody.append("Điểm: ").append(answer.getPointsEarned() != null ? answer.getPointsEarned() : 0)
+                    .append("/").append(answer.getPoints()).append("\n");
+            if (answer.getIsCorrect() != null) {
+                emailBody.append("Kết quả: ").append(answer.getIsCorrect() ? "Đúng" : "Sai").append("\n");
+            }
+            emailBody.append("\n");
+            questionNumber++;
+        }
+
+        emailBody.append("Tổng điểm: ").append(score).append("/").append(maxScore).append("\n");
+
+        message.setText(emailBody.toString());
+
+        try {
+            mailSender.send(message);
+            System.out.println("QUIZ email sent successfully to: " + toEmail);
+        } catch (Exception e) {
+            System.err.println("QUIZ email sending failed: " + e.getMessage());
             e.printStackTrace();
             throw e;
         }

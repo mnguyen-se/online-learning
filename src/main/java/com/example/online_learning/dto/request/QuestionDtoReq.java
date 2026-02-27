@@ -28,7 +28,7 @@ public class QuestionDtoReq {
     private String optionD;
 
     @NotBlank(message = "Correct answer is required")
-    private String correctAnswer; // A, B, C, hoặc D
+    private String correctAnswer;
 
     @NotNull(message = "Order index is required")
     private Integer orderIndex;

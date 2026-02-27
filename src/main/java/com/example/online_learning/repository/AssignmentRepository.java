@@ -12,6 +12,7 @@ import java.util.List;
 public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     long countByCourse_CourseId(Long courseId);
     List<Assignment> findByCourse_CourseId(Long courseId);
+    List<Assignment> findByCourse_CourseIdIn(List<Long> courseIds);
     @Query("""
 SELECT COALESCE(MAX(a.orderIndex), 0)
 FROM Assignment a
