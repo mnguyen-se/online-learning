@@ -27,8 +27,9 @@ public class StudentAnswer {
     // Cho QUIZ: A, B, C, hoặc D. Cho WRITING: text answer (điền vào chỗ trống)
     @Column(nullable = false, columnDefinition = "TEXT")
     private String studentAnswer;
-
+    @Column(nullable = true)
     private Boolean isCorrect;
 
+    @Column(nullable = true)
     private Integer pointsEarned;
 }
