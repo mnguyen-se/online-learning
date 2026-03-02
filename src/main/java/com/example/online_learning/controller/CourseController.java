@@ -176,6 +176,24 @@ public class CourseController {
     }
 
     @Operation(
+            summary = "Lấy thông tin khóa học theo ID",
+            description = "API trả về thông tin khóa học theo ID nếu khóa học ở trạng thái public. "
+                    + "Nếu khóa học không tồn tại hoặc không public thì sẽ trả về lỗi."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lấy thông tin khóa học thành công"),
+            @ApiResponse(responseCode = "400", description = "ID không hợp lệ"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy khóa học hoặc khóa học không public")
+    })
+    @GetMapping("/getById")
+    public ResponseEntity<?> getById(
+            @Parameter(description = "ID của khóa học", example = "1", required = true)
+            @RequestParam("id") Long id) {
+
+        return ResponseEntity.ok(courseService.getByIdAndIsPublicTrue(id));
+    }
+
+    @Operation(
             summary = "Xóa vĩnh viễn khóa học không hoạt động",
             description = """
                     API dùng để xóa vĩnh viễn khóa học có isPublic = false.

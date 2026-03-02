@@ -33,8 +33,8 @@ public class CourseServiceImpl implements CourseService {
     private final UserRepository userRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final LearningProcessRepository learningProcessRepository;
-    
-    public CourseServiceImpl(CourseRepository courseRepository, CourseMapper courseMapper, 
+
+    public CourseServiceImpl(CourseRepository courseRepository, CourseMapper courseMapper,
                             UserRepository userRepository, EnrollmentRepository enrollmentRepository,
                             LearningProcessRepository learningProcessRepository) {
         this.courseRepository = courseRepository;
@@ -141,6 +141,15 @@ public class CourseServiceImpl implements CourseService {
         List<Course> courses = courseRepository.findByTeacher(teacher);
 
         return courseMapper.toDto(courses);
+    }
+
+    @Override
+    public CourseDtoRes getByIdAndIsPublicTrue(Long courseId) {
+        Course course = courseRepository.findByCourseIdAndIsPublicTrue(courseId);
+        if(course == null) {
+            throw new NotFoundException("Course not found");
+        }
+        return courseMapper.toDto(course);
     }
 
     @Override

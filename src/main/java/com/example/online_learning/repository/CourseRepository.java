@@ -13,4 +13,5 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     Course findByTitle(String title);
     List<Course> findAllByIsPublicTrue();
     List<Course> findByTeacher(User teacher);
+    Course findByCourseIdAndIsPublicTrue(Long id);
 }
