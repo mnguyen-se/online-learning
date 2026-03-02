@@ -31,7 +31,5 @@ public class CourseDtoRes {
 
     private boolean isPublic;
 
-    private List<ModuleDtoRes> modules;
-    
     private List<Long> assignmentIds;
 }

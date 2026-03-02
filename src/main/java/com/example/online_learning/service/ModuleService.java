@@ -11,4 +11,5 @@ public interface ModuleService {
     ModuleDtoRes updateModule(Long moduleId, ModuleDtoReq dto);
     ModuleDtoRes findModuleById(Long moduleId);
     List<ModuleDtoRes> findModuleByCourseId(Long courseId);
+    List<ModuleDtoRes> findByCourseIdAndIsPublicTrue(Long courseId);
 }

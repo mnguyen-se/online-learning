@@ -147,4 +147,9 @@ public class ModuleController {
         List<ModuleDtoRes> result = moduleService.findModuleByCourseId(courseId);
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/IdAndPublic")
+    public ResponseEntity<?> getModuleByCourseIdAndIsPublicTrue(@RequestParam("courseId") Long courseId) {
+        return ResponseEntity.ok().body(moduleService.findByCourseIdAndIsPublicTrue(courseId));
+    }
 }

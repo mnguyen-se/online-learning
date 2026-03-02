@@ -156,4 +156,9 @@ public class LessonController {
         String videoUrl = lessonService.uploadFile(lessonId, file);
         return ResponseEntity.ok(videoUrl);
     }
+
+    @GetMapping("/IdAndPublic")
+    public ResponseEntity<?> getLessonByModuleIdAndIsPublicTrue(@RequestParam("moduleId") Long moduleId) {
+        return ResponseEntity.ok().body(lessonService.getLessonsByModuleIdAndIsPublicTrue(moduleId));
+    }
 }

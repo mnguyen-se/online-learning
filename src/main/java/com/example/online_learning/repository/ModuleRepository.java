@@ -12,7 +12,7 @@ import java.util.List;
 public interface ModuleRepository extends JpaRepository<Module, Long> {
     List<Module> findByModuleIdIn(List<Long> moduleIds);
     List<Module> findAllByCourse_CourseId(Long courseId);
-    List<Module> findAllByIsPublicTrue();
+    List<Module> findAllByCourse_CourseIdAndIsPublicTrue(Long courseId);
     List<Module> findAllByModuleId(Long moduleIds);
     boolean existsByCourse_CourseIdAndOrderIndex(Long courseId, Integer orderIndex);
     @Query("SELECT COALESCE(MAX(m.orderIndex), 0) FROM Module m WHERE m.course.courseId = :courseId")

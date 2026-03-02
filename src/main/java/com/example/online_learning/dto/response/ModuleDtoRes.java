@@ -15,7 +15,6 @@ import java.util.List;
 public class ModuleDtoRes {
     private Long moduleId;
     private Long courseId;
-    private List<LessonDtoRes> lessons;
     private String title;
     private Integer orderIndex;
 }

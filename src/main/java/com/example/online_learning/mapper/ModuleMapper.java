@@ -40,12 +40,6 @@ public class ModuleMapper {
         dto.setCourseId(module.getCourse().getCourseId());
         dto.setOrderIndex(module.getOrderIndex());
 
-        dto.setLessons(
-                module.getLessons() == null
-                        ? List.of()
-                        : lessonMapper.toDto(module.getLessons())
-        );
-
         return dto;
     }
 

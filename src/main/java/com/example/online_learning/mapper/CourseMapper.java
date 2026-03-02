@@ -46,8 +46,6 @@ public class CourseMapper {
                         : null
         );
 
-        dto.setModules(new ArrayList<>());
-        dto.setModules(moduleMapper.toDto(course.getModules()));
         
         // Lấy danh sách assignment IDs của course
         List<Long> assignmentIds = assignmentRepository.findByCourse_CourseId(course.getCourseId())

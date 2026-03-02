@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.cache.annotation.Cacheable;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -171,13 +172,15 @@ public class LessonServiceImpl implements LessonService {
             throw new BadRequestException("Lesson này không phải loại VIDEO");
         }
 
-        // 3️⃣ Upload Cloudinary
-        try {
-            Map uploadResult = cloudinary.uploader().upload(
-                    file.getBytes(),
+        // 3️⃣ Upload Cloudinary (STREAMING - FAST)
+        try (InputStream inputStream = file.getInputStream()) {
+
+            Map uploadResult = cloudinary.uploader().uploadLarge(
+                    inputStream,
                     ObjectUtils.asMap(
                             "resource_type", "video",
-                            "folder", "lessons"
+                            "folder", "lessons",
+                            "chunk_size", 6000000 // 6MB
                     )
             );
 
@@ -191,5 +194,14 @@ public class LessonServiceImpl implements LessonService {
         } catch (IOException e) {
             throw new FileUploadException("Upload video thất bại");
         }
+    }
+
+    @Override
+    public List<LessonDtoRes> getLessonsByModuleIdAndIsPublicTrue(Long moduleId) {
+        List<Lesson> lessons = lessonRepository.findByModule_ModuleIdAndIsPublicTrue(moduleId);
+        if(lessons.isEmpty()) {
+            throw new NotFoundException("Lesson not found for moduleId: " + moduleId + " and isPublic: true");
+        }
+        return lessonMapper.toDto(lessons);
     }
 }

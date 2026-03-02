@@ -130,4 +130,13 @@ public class ModuleServiceImpl implements ModuleService {
 
         return moduleMapper.toDto(modules);
     }
+
+    @Override
+    public List<ModuleDtoRes> findByCourseIdAndIsPublicTrue(Long courseId) {
+        List<Module> modules = moduleRepository.findAllByCourse_CourseIdAndIsPublicTrue(courseId);
+        if(modules.isEmpty()) {
+            throw new NotFoundException("Module not found for courseId: " + courseId + " and isPublic: true");
+        }
+        return moduleMapper.toDto(modules);
+    }
 }

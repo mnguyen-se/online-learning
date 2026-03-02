@@ -14,4 +14,5 @@ public interface LessonService {
     public List<LessonDtoRes> getAllLessons();
     public List<LessonDtoRes> findLessonByPublicTrue();
     public String uploadFile(Long lessonId, MultipartFile file);
+    public List<LessonDtoRes> getLessonsByModuleIdAndIsPublicTrue(Long moduleId);
 }
