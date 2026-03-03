@@ -36,7 +36,7 @@ public class Lesson {
     @Column(columnDefinition = "TEXT")
     private String textContent;
 
-    @Column(length = 500)
+    @Column(length = 500,name = "video_url")
     private String videoUrl;
 
 

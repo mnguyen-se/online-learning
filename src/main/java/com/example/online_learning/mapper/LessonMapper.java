@@ -24,6 +24,7 @@ public class LessonMapper {
         lessonEntity.setTitle(lesson.getTitle());
         lessonEntity.setTextContent(lesson.getTextContent());
         lessonEntity.setVideoUrl(lesson.getVideoUrl());
+        System.out.println("Video URL: " + lesson.getVideoUrl());
         Module module = moduleRepository.getReferenceById(lesson.getModuleId());
         lessonEntity.setModule(module);
         return lessonEntity;
