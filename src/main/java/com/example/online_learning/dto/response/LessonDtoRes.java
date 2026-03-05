@@ -1,7 +1,6 @@
 package com.example.online_learning.dto.response;
 
 import com.example.online_learning.constants.LessonType;
-import com.example.online_learning.entity.Course;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -33,5 +32,7 @@ public class LessonDtoRes {
     private String sectionTitle;
 
     private Long moduleId;
+
+    private Boolean isPublic;
 
 }

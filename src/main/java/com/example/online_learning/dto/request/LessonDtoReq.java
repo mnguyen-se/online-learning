@@ -1,6 +1,7 @@
 package com.example.online_learning.dto.request;
 
 import com.example.online_learning.constants.LessonType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -26,5 +27,8 @@ public class LessonDtoReq {
     private String videoUrl;
 
     private Long moduleId;
+
+    @Schema(description = "Bài học có public hay không", defaultValue = "false")
+    private Boolean isPublic = false;
 
 }

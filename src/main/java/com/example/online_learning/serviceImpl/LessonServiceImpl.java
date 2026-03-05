@@ -114,6 +114,10 @@ public class LessonServiceImpl implements LessonService {
             lesson.setLessonType(dto.getLessonType());
         }
 
+        if (dto.getIsPublic() != null) {
+            lesson.setIsPublic(dto.getIsPublic());
+        }
+
         lessonRepository.save(lesson);
     }
 

@@ -27,6 +27,8 @@ public class LessonMapper {
         System.out.println("Video URL: " + lesson.getVideoUrl());
         Module module = moduleRepository.getReferenceById(lesson.getModuleId());
         lessonEntity.setModule(module);
+        // Set isPublic, mặc định false nếu không gửi
+        lessonEntity.setIsPublic(Boolean.TRUE.equals(lesson.getIsPublic()));
         return lessonEntity;
     }
 
@@ -39,6 +41,7 @@ public class LessonMapper {
         dto.setVideoUrl(lesson.getVideoUrl());
         dto.setLessonId(lesson.getLessonId());
         dto.setModuleId(lesson.getModule().getModuleId());
+        dto.setIsPublic(lesson.getIsPublic());
         return dto;
     }
 
