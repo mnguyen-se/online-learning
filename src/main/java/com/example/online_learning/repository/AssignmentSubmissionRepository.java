@@ -29,5 +29,7 @@ AND s.status = com.example.online_learning.constants.SubmissionStatus.COMPLETED
             @Param("courseId") Long courseId
     );
 
+    List<AssignmentSubmission> findByAssignment_AssignmentIdIn(List<Long> assignmentIds);
+
 }
 

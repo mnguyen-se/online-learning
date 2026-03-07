@@ -1,15 +1,22 @@
 package com.example.online_learning.serviceImpl;
 
+import com.example.online_learning.constants.SubmissionStatus;
 import com.example.online_learning.constants.UserRole;
 import com.example.online_learning.dto.request.CourseDtoReq;
 import com.example.online_learning.dto.request.UpdateCourseDtoReq;
 import com.example.online_learning.dto.response.CourseDtoRes;
+import com.example.online_learning.dto.response.CourseStatisticsDtoRes;
+import com.example.online_learning.dto.response.MyCoursesDtoRes;
+import com.example.online_learning.entity.Assignment;
+import com.example.online_learning.entity.AssignmentSubmission;
 import com.example.online_learning.entity.Course;
 import com.example.online_learning.entity.Enrollment;
 import com.example.online_learning.entity.LearningProgress;
 import com.example.online_learning.entity.User;
 import com.example.online_learning.exception.NotFoundException;
 import com.example.online_learning.mapper.CourseMapper;
+import com.example.online_learning.repository.AssignmentRepository;
+import com.example.online_learning.repository.AssignmentSubmissionRepository;
 import com.example.online_learning.repository.CourseRepository;
 import com.example.online_learning.repository.EnrollmentRepository;
 import com.example.online_learning.repository.LearningProcessRepository;
@@ -22,9 +29,15 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.WeekFields;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class CourseServiceImpl implements CourseService {
@@ -33,15 +46,21 @@ public class CourseServiceImpl implements CourseService {
     private final UserRepository userRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final LearningProcessRepository learningProcessRepository;
+    private final AssignmentRepository assignmentRepository;
+    private final AssignmentSubmissionRepository assignmentSubmissionRepository;
 
     public CourseServiceImpl(CourseRepository courseRepository, CourseMapper courseMapper,
                             UserRepository userRepository, EnrollmentRepository enrollmentRepository,
-                            LearningProcessRepository learningProcessRepository) {
+                            LearningProcessRepository learningProcessRepository,
+                            AssignmentRepository assignmentRepository,
+                            AssignmentSubmissionRepository assignmentSubmissionRepository) {
         this.courseRepository = courseRepository;
         this.courseMapper = courseMapper;
         this.userRepository = userRepository;
         this.enrollmentRepository = enrollmentRepository;
         this.learningProcessRepository = learningProcessRepository;
+        this.assignmentRepository = assignmentRepository;
+        this.assignmentSubmissionRepository = assignmentSubmissionRepository;
     }
     @Override
     @Caching(evict = {
@@ -135,12 +154,15 @@ public class CourseServiceImpl implements CourseService {
             value = "course:list:teacher:{teacherId}",
             key = "#userDetail.user.userId"
     )
-    public List<CourseDtoRes> getMyCourses(CustomUserDetail userDetail) {
-
+    public MyCoursesDtoRes getMyCourses(CustomUserDetail userDetail) {
         User teacher = userDetail.getUser();
         List<Course> courses = courseRepository.findByTeacher(teacher);
+        List<CourseDtoRes> courseDtos = courseMapper.toDto(courses);
 
-        return courseMapper.toDto(courses);
+        return MyCoursesDtoRes.builder()
+                .totalCourses((long) courseDtos.size())
+                .courses(courseDtos)
+                .build();
     }
 
     @Override
@@ -176,6 +198,85 @@ public class CourseServiceImpl implements CourseService {
         learningProcessRepository.deleteAll(learningProgresses);
 
         courseRepository.delete(course);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CourseStatisticsDtoRes getCourseStatistics(Long courseId, CustomUserDetail userDetail) {
+        Course course = courseRepository.findByCourseId(courseId);
+        if (course == null) {
+            throw new NotFoundException("Course not found with id: " + courseId);
+        }
+
+        User currentUser = userDetail.getUser();
+        if (course.getTeacher() == null || !course.getTeacher().getUserId().equals(currentUser.getUserId())) {
+            throw new RuntimeException("Bạn không phải là giáo viên của khóa học này");
+        }
+
+        Long activeStudents = (long) enrollmentRepository
+                .findByCourse_CourseIdAndDeletedFalse(courseId)
+                .size();
+
+        List<Assignment> assignments = assignmentRepository.findByCourse_CourseId(courseId);
+        List<Long> assignmentIds = assignments.stream()
+                .map(Assignment::getAssignmentId)
+                .collect(Collectors.toList());
+
+        Long totalSubmissions = 0L;
+        Long ungradedSubmissions = 0L;
+        List<AssignmentSubmission> allSubmissions = new ArrayList<>();
+
+        if (!assignmentIds.isEmpty()) {
+            allSubmissions = assignmentSubmissionRepository.findByAssignment_AssignmentIdIn(assignmentIds);
+            totalSubmissions = (long) allSubmissions.size();
+            ungradedSubmissions = allSubmissions.stream()
+                    .filter(s -> s.getStatus() == SubmissionStatus.SUBMITTED)
+                    .count();
+        }
+
+        LocalDate now = LocalDate.now();
+        LocalDate startOfWeek = now.with(WeekFields.of(Locale.getDefault()).dayOfWeek(), 1);
+        LocalDate endOfWeek = startOfWeek.plusDays(6);
+
+        LocalDateTime startDateTime = startOfWeek.atStartOfDay();
+        LocalDateTime endDateTime = endOfWeek.atTime(23, 59, 59);
+
+        List<AssignmentSubmission> weeklySubmissions = allSubmissions.stream()
+                .filter(s -> {
+                    LocalDateTime submittedAt = s.getSubmittedAt();
+                    return submittedAt != null
+                            && !submittedAt.isBefore(startDateTime)
+                            && !submittedAt.isAfter(endDateTime);
+                })
+                .collect(Collectors.toList());
+
+        Map<DayOfWeek, Long> submissionsByDay = weeklySubmissions.stream()
+                .collect(Collectors.groupingBy(
+                        s -> s.getSubmittedAt().getDayOfWeek(),
+                        Collectors.counting()
+                ));
+
+        String[] dayNames = {"T2", "T3", "T4", "T5", "T6", "T7", "CN"};
+        List<CourseStatisticsDtoRes.WeeklySubmissionDto> weeklyStats = new ArrayList<>();
+
+        for (int i = 0; i < 7; i++) {
+            DayOfWeek dayOfWeek = DayOfWeek.of(i == 6 ? 7 : i + 1);
+            Long count = submissionsByDay.getOrDefault(dayOfWeek, 0L);
+
+            weeklyStats.add(CourseStatisticsDtoRes.WeeklySubmissionDto.builder()
+                    .dayOfWeek(dayNames[i])
+                    .count(count.intValue())
+                    .build());
+        }
+
+        return CourseStatisticsDtoRes.builder()
+                .courseId(courseId)
+                .courseTitle(course.getTitle())
+                .activeStudents(activeStudents)
+                .totalSubmissions(totalSubmissions)
+                .ungradedSubmissions(ungradedSubmissions)
+                .weeklySubmissions(weeklyStats)
+                .build();
     }
 
 }

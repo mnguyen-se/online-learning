@@ -3,6 +3,8 @@ package com.example.online_learning.controller;
 import com.example.online_learning.dto.request.CourseDtoReq;
 import com.example.online_learning.dto.request.UpdateCourseDtoReq;
 import com.example.online_learning.dto.response.CourseDtoRes;
+import com.example.online_learning.dto.response.CourseStatisticsDtoRes;
+import com.example.online_learning.dto.response.MyCoursesDtoRes;
 import com.example.online_learning.dto.response.UserDtoRes;
 import com.example.online_learning.security.CustomUserDetail;
 import com.example.online_learning.service.CourseService;
@@ -168,7 +170,7 @@ public class CourseController {
     })
     @PreAuthorize("hasRole('TEACHER')")
     @GetMapping("/my-courses")
-    public ResponseEntity<List<CourseDtoRes>> getMyCourses(
+    public ResponseEntity<MyCoursesDtoRes> getMyCourses(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetail userDetail
     ) {
@@ -222,5 +224,25 @@ public class CourseController {
     ) {
         courseService.deleteInactiveCoursePermanently(courseId);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = "Lấy thống kê khóa học",
+            description = "API dùng để Teacher xem thống kê của khóa học mình quản lý"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lấy thống kê thành công"),
+            @ApiResponse(responseCode = "403", description = "Không có quyền truy cập"),
+            @ApiResponse(responseCode = "404", description = "Khóa học không tồn tại")
+    })
+    @PreAuthorize("hasRole('TEACHER')")
+    @GetMapping("/{courseId}/statistics")
+    public ResponseEntity<CourseStatisticsDtoRes> getCourseStatistics(
+            @Parameter(description = "ID của khóa học")
+            @PathVariable Long courseId,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetail userDetail
+    ) {
+        return ResponseEntity.ok(courseService.getCourseStatistics(courseId, userDetail));
     }
 }
