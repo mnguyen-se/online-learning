@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AnswerDetailDtoRes {
+    private Long answerId;
     private Long questionId;
     private String questionText;
     private String optionA;

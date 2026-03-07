@@ -200,6 +200,7 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
             }
 
             details.add(AnswerDetailDtoRes.builder()
+                    .answerId(studentAnswer.getAnswerId())
                     .questionId(question.getQuestionId())
                     .questionText(question.getQuestionText())
                     .optionA(question.getOptionA())
@@ -318,6 +319,7 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 continue;
             }
             details.add(AnswerDetailDtoRes.builder()
+                    .answerId(studentAnswer.getAnswerId())
                     .questionId(question.getQuestionId())
                     .questionText(question.getQuestionText())
                     .optionA(question.getOptionA())
@@ -622,6 +624,7 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 continue;
             }
             answerDetails.add(AnswerDetailDtoRes.builder()
+                    .answerId(studentAnswer.getAnswerId())
                     .questionId(question.getQuestionId())
                     .questionText(question.getQuestionText())
                     .optionA(question.getOptionA())
