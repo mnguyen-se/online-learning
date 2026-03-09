@@ -39,7 +39,7 @@ spring:
         max-lifetime: 1800000
         connection-timeout: 30000
 
-#      -----------DATABASE LOCAL-------------############
+##      -----------DATABASE LOCAL-------------############
 #    url: jdbc:mysql://localhost:3305/online_learning?useSSL=false&serverTimezone=UTC
 #    username: root
 #    password: 12345

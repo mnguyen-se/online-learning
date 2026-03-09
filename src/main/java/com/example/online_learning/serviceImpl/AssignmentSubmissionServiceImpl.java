@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -281,28 +282,74 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
             throw new RuntimeException("Bạn không phải là giáo viên của khóa học này");
         }
 
-        submission.setScore(request.getScore());
+        List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignment.getAssignmentId());
+
+        List<StudentAnswer> studentAnswers = studentAnswerRepository.findBySubmission_SubmissionId(submissionId);
+        
+        Map<Long, StudentAnswer> answerByQuestionMap = studentAnswers.stream()
+                .collect(Collectors.toMap(sa -> sa.getQuestion().getQuestionId(), sa -> sa));
+
+        Map<Long, GradeQuizSubmissionDtoReq.AnswerGradeDto> answerGradeMap = new HashMap<>();
+        if (request.getAnswerGrades() != null) {
+            for (GradeQuizSubmissionDtoReq.AnswerGradeDto answerGrade : request.getAnswerGrades()) {
+                answerGradeMap.put(answerGrade.getAnswerId(), answerGrade);
+            }
+        }
+
+        int totalScore = 0;
+        for (Question question : questions) {
+            StudentAnswer studentAnswer = answerByQuestionMap.get(question.getQuestionId());
+            boolean isNewAnswer = false;
+            
+            if (studentAnswer == null) {
+                studentAnswer = StudentAnswer.builder()
+                        .submission(submission)
+                        .question(question)
+                        .studentAnswer("")
+                        .isCorrect(false)
+                        .pointsEarned(0)
+                        .build();
+                isNewAnswer = true;
+            } else {
+                String studentAnswerStr = studentAnswer.getStudentAnswer() != null 
+                        ? studentAnswer.getStudentAnswer().trim().toUpperCase() 
+                        : "";
+                String correctAnswerStr = question.getCorrectAnswer() != null 
+                        ? question.getCorrectAnswer().trim().toUpperCase() 
+                        : "";
+                
+                boolean isCorrect = !studentAnswerStr.isEmpty() && studentAnswerStr.equals(correctAnswerStr);
+                studentAnswer.setIsCorrect(isCorrect);
+                
+                int questionPoints = question.getPoints() != null ? question.getPoints() : 5;
+                int pointsEarned = isCorrect ? questionPoints : 0;
+                
+                GradeQuizSubmissionDtoReq.AnswerGradeDto answerGrade = answerGradeMap.get(studentAnswer.getAnswerId());
+                if (answerGrade != null && answerGrade.getPointsEarned() != null) {
+                    pointsEarned = answerGrade.getPointsEarned();
+                }
+                
+                studentAnswer.setPointsEarned(pointsEarned);
+            }
+            
+            totalScore += studentAnswer.getPointsEarned();
+            
+            if (isNewAnswer) {
+                studentAnswer = studentAnswerRepository.save(studentAnswer);
+            } else {
+                studentAnswerRepository.save(studentAnswer);
+            }
+        }
+
+        Integer finalScore = request.getScore() != null ? request.getScore() : totalScore;
+        
+        submission.setScore(finalScore);
         submission.setStatus(SubmissionStatus.GRADED);
         if (request.getFeedback() != null && !request.getFeedback().trim().isEmpty()) {
             submission.setContent(request.getFeedback());
         }
         submission = submissionRepo.save(submission);
 
-        List<StudentAnswer> studentAnswers = studentAnswerRepository.findBySubmission_SubmissionId(submissionId);
-        Map<Long, StudentAnswer> answerMap = studentAnswers.stream()
-                .collect(Collectors.toMap(StudentAnswer::getAnswerId, sa -> sa));
-
-        for (GradeQuizSubmissionDtoReq.AnswerGradeDto answerGrade : request.getAnswerGrades()) {
-            StudentAnswer studentAnswer = answerMap.get(answerGrade.getAnswerId());
-            if (studentAnswer == null) {
-                throw new NotFoundException("Student answer not found with id: " + answerGrade.getAnswerId());
-            }
-            studentAnswer.setPointsEarned(answerGrade.getPointsEarned());
-            studentAnswer.setIsCorrect(answerGrade.getIsCorrect());
-            studentAnswerRepository.save(studentAnswer);
-        }
-
-        List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignment.getAssignmentId());
         List<StudentAnswer> updatedAnswers = studentAnswerRepository.findBySubmission_SubmissionId(submissionId);
         Map<Long, StudentAnswer> updatedAnswerMap = updatedAnswers.stream()
                 .collect(Collectors.toMap(sa -> sa.getQuestion().getQuestionId(), sa -> sa));
@@ -310,28 +357,42 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
         int maxScore = questions.stream()
                 .mapToInt(q -> q.getPoints() != null ? q.getPoints() : 5)
                 .sum();
-        double percentage = maxScore > 0 ? (request.getScore() * 100.0 / maxScore) : 0.0;
+        double percentage = maxScore > 0 ? (finalScore * 100.0 / maxScore) : 0.0;
 
         List<AnswerDetailDtoRes> details = new ArrayList<>();
         for (Question question : questions) {
             StudentAnswer studentAnswer = updatedAnswerMap.get(question.getQuestionId());
             if (studentAnswer == null) {
-                continue;
+                details.add(AnswerDetailDtoRes.builder()
+                        .answerId(null)
+                        .questionId(question.getQuestionId())
+                        .questionText(question.getQuestionText())
+                        .optionA(question.getOptionA())
+                        .optionB(question.getOptionB())
+                        .optionC(question.getOptionC())
+                        .optionD(question.getOptionD())
+                        .studentAnswer(null)
+                        .correctAnswer(question.getCorrectAnswer())
+                        .isCorrect(false)
+                        .points(question.getPoints() != null ? question.getPoints() : 5)
+                        .pointsEarned(0)
+                        .build());
+            } else {
+                details.add(AnswerDetailDtoRes.builder()
+                        .answerId(studentAnswer.getAnswerId())
+                        .questionId(question.getQuestionId())
+                        .questionText(question.getQuestionText())
+                        .optionA(question.getOptionA())
+                        .optionB(question.getOptionB())
+                        .optionC(question.getOptionC())
+                        .optionD(question.getOptionD())
+                        .studentAnswer(studentAnswer.getStudentAnswer())
+                        .correctAnswer(question.getCorrectAnswer())
+                        .isCorrect(studentAnswer.getIsCorrect())
+                        .points(question.getPoints() != null ? question.getPoints() : 5)
+                        .pointsEarned(studentAnswer.getPointsEarned())
+                        .build());
             }
-            details.add(AnswerDetailDtoRes.builder()
-                    .answerId(studentAnswer.getAnswerId())
-                    .questionId(question.getQuestionId())
-                    .questionText(question.getQuestionText())
-                    .optionA(question.getOptionA())
-                    .optionB(question.getOptionB())
-                    .optionC(question.getOptionC())
-                    .optionD(question.getOptionD())
-                    .studentAnswer(studentAnswer.getStudentAnswer())
-                    .correctAnswer(question.getCorrectAnswer())
-                    .isCorrect(studentAnswer.getIsCorrect())
-                    .points(question.getPoints() != null ? question.getPoints() : 5)
-                    .pointsEarned(studentAnswer.getPointsEarned())
-                    .build());
         }
 
         try {
@@ -351,7 +412,7 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
         return QuizResultDtoRes.builder()
                 .submissionId(submission.getSubmissionId())
                 .assignmentId(assignment.getAssignmentId())
-                .score(request.getScore())
+                .score(finalScore)
                 .maxScore(maxScore)
                 .percentage(Math.round(percentage * 100.0) / 100.0)
                 .details(details)

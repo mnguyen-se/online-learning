@@ -13,12 +13,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GradeQuizSubmissionDtoReq {
-    @NotNull(message = "Score is required")
     private Integer score;
 
     private String feedback;
 
-    @NotNull(message = "Answer grades are required")
     private List<AnswerGradeDto> answerGrades;
 
     @Data
@@ -29,7 +27,6 @@ public class GradeQuizSubmissionDtoReq {
         @NotNull(message = "Answer ID is required")
         private Long answerId;
 
-        @NotNull(message = "Points earned is required")
         private Integer pointsEarned;
 
         private Boolean isCorrect;
