@@ -51,7 +51,7 @@ public class AssignmentWritingController {
             @PathVariable Long assignmentId
     ) {
         return ResponseEntity.ok(
-                questionService.getQuestionsByAssignmentId(assignmentId)
+                questionService.getWritingQuestionsByAssignmentId(assignmentId)
         );
     }
 

@@ -113,7 +113,7 @@ public class AssignmentQuizController {
             @PathVariable Long assignmentId
     ) {
         return ResponseEntity.ok(
-                questionService.getQuestionsByAssignmentId(assignmentId)
+                questionService.getQuizQuestionsByAssignmentId(assignmentId)
         );
     }
 

@@ -1,5 +1,6 @@
 package com.example.online_learning.serviceImpl;
 
+import com.example.online_learning.constants.AssignmentType;
 import com.example.online_learning.dto.request.QuestionDtoReq;
 import com.example.online_learning.dto.request.WritingQuestionDtoReq;
 import com.example.online_learning.dto.response.ExcelErrorDto;
@@ -115,9 +116,33 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<QuestionDtoRes> getQuestionsByAssignmentId(Long assignmentId) {
-        if (!assignmentRepository.existsById(assignmentId)) {
-            throw new NotFoundException("Assignment not found with id: " + assignmentId);
+    public List<QuestionDtoRes> getQuizQuestionsByAssignmentId(Long assignmentId) {
+        Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new NotFoundException("Assignment not found with id: " + assignmentId));
+
+        if (assignment.getAssignmentType() != AssignmentType.QUIZ) {
+            throw new IllegalArgumentException("This assignment is not a QUIZ type assignment");
+        }
+
+        List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignmentId);
+        List<QuestionDtoRes> result = new ArrayList<>();
+
+        for (Question question : questions) {
+            QuestionDtoRes dto = convertQuestionToDtoRes(question);
+            result.add(dto);
+        }
+
+        return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<QuestionDtoRes> getWritingQuestionsByAssignmentId(Long assignmentId) {
+        Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new NotFoundException("Assignment not found with id: " + assignmentId));
+
+        if (assignment.getAssignmentType() != AssignmentType.WRITING) {
+            throw new IllegalArgumentException("This assignment is not a WRITING type assignment");
         }
 
         List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignmentId);

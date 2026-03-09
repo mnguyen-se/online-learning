@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface QuestionService {
     ExcelUploadResponseDto uploadQuestionsFromExcel(Long assignmentId, MultipartFile file);
-    List<QuestionDtoRes> getQuestionsByAssignmentId(Long assignmentId);
+    List<QuestionDtoRes> getQuizQuestionsByAssignmentId(Long assignmentId);
+    List<QuestionDtoRes> getWritingQuestionsByAssignmentId(Long assignmentId);
     QuestionDtoRes createWritingQuestion(Long assignmentId, WritingQuestionDtoReq request);
 }
