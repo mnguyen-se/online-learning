@@ -10,8 +10,7 @@ spring:
   cloudinary:
     cloud-name: ${CLOUDINARY_CLOUD_NAME}
     api-key: ${CLOUDINARY_API_KEY}
-    api-secret: ${CLOUDINARY_API_SECRET}
-
+    api-secret: ${CLOUDINARY_API_SECRET}git
   servlet:
     multipart:
       max-file-size: 200MB
@@ -57,8 +56,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: Longnvse180646@fpt.edu.vn
-    password: paih kccp jlfk ktjl
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_PASSWORD}
     properties:
       mail:
         smtp:
