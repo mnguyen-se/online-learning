@@ -56,6 +56,21 @@ public class AssignmentWritingController {
     }
 
     @Operation(
+            summary = "Học sinh xem danh sách câu hỏi writing",
+            description = "Học sinh xem câu hỏi writing của assignment để làm bài"
+    )
+    @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
+    @GetMapping("/{assignmentId}/writing-questions/student")
+    public ResponseEntity<?> getWritingQuestionsForStudent(
+            @PathVariable Long assignmentId,
+            @AuthenticationPrincipal CustomUserDetail userDetail
+    ) {
+        return ResponseEntity.ok(
+                questionService.getWritingQuestionsForStudent(assignmentId, userDetail.getUser().getUserId())
+        );
+    }
+
+    @Operation(
             summary = "Học sinh nộp bài writing assignment",
             description = "Học sinh nộp đáp án điền vào chỗ trống. Giáo viên sẽ chấm thủ công sau đó."
     )

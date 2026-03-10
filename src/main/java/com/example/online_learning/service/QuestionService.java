@@ -11,5 +11,6 @@ public interface QuestionService {
     ExcelUploadResponseDto uploadQuestionsFromExcel(Long assignmentId, MultipartFile file);
     List<QuestionDtoRes> getQuizQuestionsByAssignmentId(Long assignmentId);
     List<QuestionDtoRes> getWritingQuestionsByAssignmentId(Long assignmentId);
+    List<QuestionDtoRes> getWritingQuestionsForStudent(Long assignmentId, Long studentId);
     QuestionDtoRes createWritingQuestion(Long assignmentId, WritingQuestionDtoReq request);
 }

@@ -10,6 +10,7 @@ import com.example.online_learning.entity.Assignment;
 import com.example.online_learning.entity.Question;
 import com.example.online_learning.exception.NotFoundException;
 import com.example.online_learning.repository.AssignmentRepository;
+import com.example.online_learning.repository.EnrollmentRepository;
 import com.example.online_learning.repository.QuestionRepository;
 import com.example.online_learning.service.QuestionService;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class QuestionServiceImpl implements QuestionService {
 
     private final QuestionRepository questionRepository;
     private final AssignmentRepository assignmentRepository;
+    private final EnrollmentRepository enrollmentRepository;
     private static final int MAX_QUESTIONS = 100;
     private static final int MIN_QUESTIONS_REQUIRED = 25; 
     private static final int QUESTIONS_TO_SELECT = 20; 
@@ -150,6 +152,31 @@ public class QuestionServiceImpl implements QuestionService {
 
         for (Question question : questions) {
             QuestionDtoRes dto = convertQuestionToDtoRes(question);
+            result.add(dto);
+        }
+
+        return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<QuestionDtoRes> getWritingQuestionsForStudent(Long assignmentId, Long studentId) {
+        Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new NotFoundException("Assignment not found with id: " + assignmentId));
+
+        if (assignment.getAssignmentType() != AssignmentType.WRITING) {
+            throw new IllegalArgumentException("This assignment is not a WRITING type assignment");
+        }
+
+        enrollmentRepository.findByUser_UserIdAndCourse_CourseIdAndDeletedFalse(studentId, assignment.getCourse().getCourseId())
+                .orElseThrow(() -> new RuntimeException("Bạn chưa enroll khóa học này"));
+
+        List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignmentId);
+        List<QuestionDtoRes> result = new ArrayList<>();
+
+        for (Question question : questions) {
+            QuestionDtoRes dto = convertQuestionToDtoRes(question);
+            dto.setCorrectAnswer(null);
             result.add(dto);
         }
 
