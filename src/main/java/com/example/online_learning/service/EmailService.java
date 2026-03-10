@@ -15,4 +15,5 @@ public interface EmailService {
                         Integer score, Integer maxScore,
                         String feedback,
                         List<AnswerDetailDtoRes> answers);
+    void sendPasswordResetCode(String toEmail, String name, String code);
 }

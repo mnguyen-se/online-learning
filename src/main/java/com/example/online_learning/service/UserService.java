@@ -1,5 +1,6 @@
 package com.example.online_learning.service;
 
+import com.example.online_learning.dto.request.ChangePasswordDtoReq;
 import com.example.online_learning.dto.request.CreateUserDtoReq;
 import com.example.online_learning.dto.request.UpdateUserDtoReq;
 import com.example.online_learning.dto.response.UserDtoRes;
@@ -12,4 +13,5 @@ public interface UserService {
     UserDtoRes createUser(CreateUserDtoReq request);
     UserDtoRes updateUser(Long userId, UpdateUserDtoReq request);
     void deleteUser(Long userId);
+    void changePassword(Long userId, ChangePasswordDtoReq request);
 }

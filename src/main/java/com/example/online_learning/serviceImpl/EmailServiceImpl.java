@@ -159,6 +159,25 @@ public class EmailServiceImpl implements EmailService {
             throw e;
         }
     }
+
+    @Override
+    public void sendPasswordResetCode(String toEmail, String name, String code) {
+        if (mailSender == null) {
+            return;
+        }
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("Mã khôi phục mật khẩu");
+        message.setText(
+                "Xin chào " + (name != null ? name : "") + ",\n\n" +
+                "Mã khôi phục mật khẩu của bạn là: " + code + "\n" +
+                "Mã có hiệu lực trong 10 phút.\n\n" +
+                "Nếu bạn không yêu cầu, hãy bỏ qua email này.\n"
+        );
+
+        mailSender.send(message);
+    }
     
     private String formatStudentAnswer(WritingAnswerDetailDtoRes answer) {
         String studentAnswer = answer.getStudentAnswer();

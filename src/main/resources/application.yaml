@@ -8,9 +8,9 @@ spring:
       host: localhost
       port: 6379
   cloudinary:
-    cloud-name: ${CLOUDINARY_CLOUD_NAME}
-    api-key: ${CLOUDINARY_API_KEY}
-    api-secret: ${CLOUDINARY_API_SECRET}
+    cloud-name: dnr5ozidd
+    api-key: 859981639476447
+    api-secret: edg1eV7YPOf9ptQB9uSNxkwb2xQ
   servlet:
     multipart:
       max-file-size: 200MB
@@ -25,10 +25,10 @@ spring:
     name: online_learning
 
   datasource:
-    url: ${DB_URL}?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: ${DB_URL}?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC
+#    username: ${DB_USERNAME}
+#    password: ${DB_PASSWORD}
+#    driver-class-name: com.mysql.cj.jdbc.Driver
 
 
     hikari:
@@ -39,10 +39,10 @@ spring:
         connection-timeout: 30000
 
 ##      -----------DATABASE LOCAL-------------############
-#    url: jdbc:mysql://localhost:3305/online_learning?useSSL=false&serverTimezone=UTC
-#    username: root
-#    password: 12345
-#    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3305/online_learning?useSSL=false&serverTimezone=UTC
+    username: root
+    password: 12345
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
@@ -56,8 +56,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${EMAIL_USERNAME}
-    password: ${EMAIL_PASSWORD}
+    username: Longnvse180646@fpt.edu.vn
+    password: paih kccp jlfk ktjl
     properties:
       mail:
         smtp:

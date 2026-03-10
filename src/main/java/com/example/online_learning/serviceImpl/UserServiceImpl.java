@@ -1,6 +1,7 @@
 package com.example.online_learning.serviceImpl;
 
 import com.example.online_learning.constants.UserRole;
+import com.example.online_learning.dto.request.ChangePasswordDtoReq;
 import com.example.online_learning.dto.request.CreateUserDtoReq;
 import com.example.online_learning.dto.request.UpdateUserDtoReq;
 import com.example.online_learning.dto.response.UserDtoRes;
@@ -107,8 +108,27 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
-        // Soft delete: chuyển active sang false thay vì xóa
         user.setActive(false);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void changePassword(Long userId, ChangePasswordDtoReq request) {
+        if (request.getNewPassword() == null || request.getNewPassword().isBlank()) {
+            throw new IllegalArgumentException("New password is required");
+        }
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalArgumentException("Confirm password does not match");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Old password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }
 }
