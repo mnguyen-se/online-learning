@@ -165,10 +165,6 @@ public class AiController {
                 "    <div class='container'>\n" +
                 "        <h1>Quiz Practice</h1>\n" +
                 "        <div class='hint'>\n" +
-                "            <strong>Hướng dẫn:</strong><br>\n" +
-                "            1. Copy toàn bộ code bên dưới.<br>\n" +
-                "            2. Dán vào file .html và mở bằng trình duyệt.<br>\n" +
-                "            3. Nhấn \"Nộp Bài và Xem Kết Quả\" để xem điểm.\n" +
                 "        </div>\n" +
                 quizHtml + "\n" +
                 "    </div>\n" +
