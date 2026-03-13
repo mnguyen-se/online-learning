@@ -22,7 +22,7 @@ public class UpdateCourseDtoReq {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    private boolean isPublic;
+    private Boolean isPublic;
     
     private Long teacherId;
 }
