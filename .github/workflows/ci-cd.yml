@@ -5,6 +5,7 @@ on:
     branches:
       - dev-be-main
       - be-*
+      - main
   pull_request:
 
 jobs:
