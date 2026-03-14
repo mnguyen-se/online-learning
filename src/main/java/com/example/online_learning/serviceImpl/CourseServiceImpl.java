@@ -64,7 +64,7 @@ public class CourseServiceImpl implements CourseService {
     }
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "courses_all", allEntries = true),
+            @CacheEvict(value = "course:list:all", allEntries = true),
             @CacheEvict(value = "course:list:public", allEntries = true),
             @CacheEvict(value = "courses_teacher", key = "#userDetail.user.userId")
     })
@@ -92,7 +92,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "courses_all", allEntries = true),
+            @CacheEvict(value = "course:list:all", allEntries = true),
             @CacheEvict(value = "course:list:public", allEntries = true),
             @CacheEvict(value = "courses_teacher", key = "#userDetail.user.userId")
     })
@@ -110,7 +110,9 @@ public class CourseServiceImpl implements CourseService {
         if (dto.getDescription() != null) {
             course.setDescription(dto.getDescription());
         }
-        course.setIsPublic(dto.isPublic());
+        if (dto.getIsPublic() != null) {
+            course.setIsPublic(dto.getIsPublic());
+        }
 
         // Xử lý teacherId nếu được cung cấp
         if (dto.getTeacherId() != null) {
@@ -176,7 +178,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "courses_all", allEntries = true),
+            @CacheEvict(value = "course:list:all", allEntries = true),
             @CacheEvict(value = "course:list:public", allEntries = true),
             @CacheEvict(value = "course:list:teacher", allEntries = true)
     })

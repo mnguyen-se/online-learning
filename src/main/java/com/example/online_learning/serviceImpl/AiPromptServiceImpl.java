@@ -116,9 +116,10 @@ public class AiPromptServiceImpl implements AiPromptService {
                 - Language: Vietnamese
                 - Each question has radio buttons (True / False)
                 - Show result after submitting
+                - Show result of each question below the question
                 - Include inline CSS and JavaScript
                 - Return ONLY valid HTML code, NO markdown, NO ``` block
-                """.formatted(lesson.getTitle());
+                """.formatted(lesson.getTextContent());
 
         String rawJson = geminiService.generateContent(prompt);
         return extractTextFromGeminiJson(rawJson); // trả về HTML sạch
