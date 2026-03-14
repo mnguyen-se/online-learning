@@ -1,10 +1,7 @@
 spring:
-  spring:
-    data:
-      redis:
-        host: localhost
-        port: 6379
-        url: ${REDIS_URL}
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
   datasource:
     url: jdbc:h2:mem:testdb
     driver-class-name: org.h2.Driver
