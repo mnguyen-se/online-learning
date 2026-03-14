@@ -93,4 +93,4 @@ ai:
     assistant-version: v1.0
 
 server:
-  port=${PORT:8080}:
+  port: ${PORT:8080}
