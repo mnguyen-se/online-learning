@@ -13,8 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GradeWritingSubmissionDtoReq {
-    @NotNull(message = "Score is required")
-    private Integer score; // Tổng điểm giáo viên chấm
+    private Integer score;
 
     private String feedback; // Feedback từ giáo viên (optional)
 

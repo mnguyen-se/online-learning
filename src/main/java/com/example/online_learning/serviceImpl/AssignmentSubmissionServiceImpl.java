@@ -601,22 +601,23 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
             throw new RuntimeException("Bạn không phải là giáo viên của khóa học này");
         }
 
-        if (submission.getStatus() == SubmissionStatus.GRADED) {
-            // Nếu đã chấm rồi, cho phép chấm lại (cập nhật điểm)
-        }
-
-        // Cập nhật điểm tổng
-        submission.setScore(request.getScore());
-        submission.setStatus(SubmissionStatus.GRADED);
-        if (request.getFeedback() != null && !request.getFeedback().trim().isEmpty()) {
-            submission.setContent(request.getFeedback()); // Lưu feedback vào content field
-        }
-        submission = submissionRepo.save(submission);
-
-        // Cập nhật điểm từng câu
+        List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignment.getAssignmentId());
         List<StudentAnswer> studentAnswers = studentAnswerRepository.findBySubmission_SubmissionId(submissionId);
+        
+        if (studentAnswers.size() != request.getAnswerGrades().size()) {
+            throw new IllegalArgumentException("Must grade all answers. Expected " + studentAnswers.size() + " answers, but got " + request.getAnswerGrades().size());
+        }
+
+        int maxScore = (assignment.getMaxScore() != null)
+                ? assignment.getMaxScore()
+                : questions.stream()
+                    .mapToInt(q -> q.getPoints() != null ? q.getPoints() : 5)
+                    .sum();
+
         Map<Long, StudentAnswer> answerMap = studentAnswers.stream()
                 .collect(Collectors.toMap(StudentAnswer::getAnswerId, sa -> sa));
+
+        int totalScore = 0;
 
         for (GradeWritingSubmissionDtoReq.AnswerGradeDto answerGrade : request.getAnswerGrades()) {
             StudentAnswer studentAnswer = answerMap.get(answerGrade.getAnswerId());
@@ -624,12 +625,42 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 throw new NotFoundException("Student answer not found with id: " + answerGrade.getAnswerId());
             }
 
-            studentAnswer.setPointsEarned(answerGrade.getPointsEarned());
+            Integer pointsEarned = answerGrade.getPointsEarned();
+            if (pointsEarned == null) {
+                throw new IllegalArgumentException("pointsEarned is required for answerId: " + answerGrade.getAnswerId());
+            }
+            if (pointsEarned < 0) {
+                throw new IllegalArgumentException("pointsEarned cannot be negative for answerId: " + answerGrade.getAnswerId());
+            }
+
+            Integer questionPoints = studentAnswer.getQuestion().getPoints();
+            int maxPointsForQuestion = (questionPoints != null) ? questionPoints : 5;
+
+            if (pointsEarned > maxPointsForQuestion) {
+                throw new IllegalArgumentException(
+                        "pointsEarned (" + pointsEarned + ") exceeds question.points (" + maxPointsForQuestion + ") for answerId: " + answerGrade.getAnswerId()
+                );
+            }
+
+            studentAnswer.setPointsEarned(pointsEarned);
             studentAnswer.setIsCorrect(answerGrade.getIsCorrect());
             studentAnswerRepository.save(studentAnswer);
+
+            totalScore += pointsEarned;
         }
 
-        List<Question> questions = questionRepository.findByAssignment_AssignmentIdOrderByOrderIndexAsc(assignment.getAssignmentId());
+        int finalScore = totalScore;
+
+        if (finalScore > maxScore) {
+            throw new IllegalArgumentException("finalScore (" + finalScore + ") exceeds maxScore (" + maxScore + ")");
+        }
+
+        submission.setScore(finalScore);
+        submission.setStatus(SubmissionStatus.GRADED);
+        if (request.getFeedback() != null && !request.getFeedback().trim().isEmpty()) {
+            submission.setContent(request.getFeedback());
+        }
+        submission = submissionRepo.save(submission);
         
         WritingSubmissionDtoRes submissionDto = buildWritingSubmissionDtoRes(submission, questions);
         
