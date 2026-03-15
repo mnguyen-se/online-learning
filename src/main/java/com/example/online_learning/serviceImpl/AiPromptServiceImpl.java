@@ -114,7 +114,8 @@ public class AiPromptServiceImpl implements AiPromptService {
                 Requirements:
                 - 10 to 20 true/false questions
                 - Language: Vietnamese
-                - Each question has radio buttons (True / False) in Vietnamese
+                - Each question has radio buttons labeled "Đúng" and "Sai" ONLY
+                - DO NOT show the English words "True" or "False" anywhere
                 - Show result after submitting
                 - Show result of each question below the question
                 - Include inline CSS and JavaScript
