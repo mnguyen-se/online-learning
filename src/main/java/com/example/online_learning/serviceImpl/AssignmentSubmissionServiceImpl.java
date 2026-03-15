@@ -216,6 +216,11 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                     .build());
         }
 
+        List<String> feedbacks = new ArrayList<>();
+        if (submission.getContent() != null && !submission.getContent().trim().isEmpty()) {
+            feedbacks.add(submission.getContent());
+        }
+
         return QuizResultDtoRes.builder()
                 .submissionId(submission.getSubmissionId())
                 .assignmentId(assignmentId)
@@ -223,7 +228,7 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 .maxScore(maxScore)
                 .percentage(Math.round(percentage * 100.0) / 100.0)
                 .details(details)
-                .feedbacks(new ArrayList<>())
+                .feedbacks(feedbacks)
                 .build();
     }
 
@@ -409,6 +414,11 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
             System.err.println("Failed to send quiz email: " + e.getMessage());
         }
 
+        List<String> feedbacks = new ArrayList<>();
+        if (submission.getContent() != null && !submission.getContent().trim().isEmpty()) {
+            feedbacks.add(submission.getContent());
+        }
+
         return QuizResultDtoRes.builder()
                 .submissionId(submission.getSubmissionId())
                 .assignmentId(assignment.getAssignmentId())
@@ -416,7 +426,7 @@ public class AssignmentSubmissionServiceImpl implements AssignmentSubmissionServ
                 .maxScore(maxScore)
                 .percentage(Math.round(percentage * 100.0) / 100.0)
                 .details(details)
-                .feedbacks(new ArrayList<>())
+                .feedbacks(feedbacks)
                 .build();
     }
 

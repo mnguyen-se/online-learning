@@ -18,5 +18,5 @@ public class QuizResultDtoRes {
     private Integer maxScore;
     private Double percentage;
     private List<AnswerDetailDtoRes> details;
-    private List<FeedbackDtoRes> feedbacks;
+    private List<String> feedbacks;
 }
