@@ -5,8 +5,8 @@ spring:
 
   data:
     redis:
-      host: localhost
-      port: 6379
+#      host: localhost //-- host và port để chạy local, khi nào chạy local thì ẩn url và bật host và port --//
+#      port: 6379
       url: ${REDIS_URL}
   cloudinary:
     cloud-name: ${CLOUDINARY_CLOUD_NAME}
