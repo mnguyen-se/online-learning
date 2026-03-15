@@ -234,13 +234,15 @@ public class AuthController {
             description = "Gửi mã khôi phục qua email"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Đã gửi mã nếu email tồn tại")
+            @ApiResponse(responseCode = "200", description = "Đã gửi mã nếu email tồn tại"),
+            @ApiResponse(responseCode = "400", description = "Email chưa được đăng ký trong hệ thống")
     })
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@jakarta.validation.Valid @RequestBody ForgotPasswordDtoReq request) {
         User user = userRepository.findByEmail(request.getEmail()).orElse(null);
         if (user == null) {
-            return ResponseEntity.ok(Map.of("message", "If email exists, a reset code has been sent"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Email chưa được đăng ký"));
         }
 
         String code = String.format("%06d", new SecureRandom().nextInt(1_000_000));
