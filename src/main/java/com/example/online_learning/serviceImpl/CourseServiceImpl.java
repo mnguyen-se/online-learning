@@ -50,10 +50,10 @@ public class CourseServiceImpl implements CourseService {
     private final AssignmentSubmissionRepository assignmentSubmissionRepository;
 
     public CourseServiceImpl(CourseRepository courseRepository, CourseMapper courseMapper,
-                            UserRepository userRepository, EnrollmentRepository enrollmentRepository,
-                            LearningProcessRepository learningProcessRepository,
-                            AssignmentRepository assignmentRepository,
-                            AssignmentSubmissionRepository assignmentSubmissionRepository) {
+                             UserRepository userRepository, EnrollmentRepository enrollmentRepository,
+                             LearningProcessRepository learningProcessRepository,
+                             AssignmentRepository assignmentRepository,
+                             AssignmentSubmissionRepository assignmentSubmissionRepository) {
         this.courseRepository = courseRepository;
         this.courseMapper = courseMapper;
         this.userRepository = userRepository;
@@ -66,26 +66,26 @@ public class CourseServiceImpl implements CourseService {
     @Caching(evict = {
             @CacheEvict(value = "course:list:all", allEntries = true),
             @CacheEvict(value = "course:list:public", allEntries = true),
-            @CacheEvict(value = "courses_teacher", key = "#userDetail.user.userId")
+            @CacheEvict(value = "course:list:teacher", allEntries = true)
     })
     public CourseDtoRes createCourse(CourseDtoReq dto, CustomUserDetail userDetail) {
         Course course = courseMapper.toEntity(dto);
         course.setCreatedBy(userDetail.getUser());
         course.setIsPublic(false);
-        
+
         // Xử lý teacherId nếu được cung cấp
         if (dto.getTeacherId() != null) {
             User teacher = userRepository.findById(dto.getTeacherId())
                     .orElseThrow(() -> new NotFoundException("Teacher not found with id: " + dto.getTeacherId()));
-            
+
             // Kiểm tra user có phải là TEACHER không
             if (teacher.getRole() != UserRole.TEACHER) {
                 throw new IllegalArgumentException("User with id " + dto.getTeacherId() + " is not a teacher");
             }
-            
+
             course.setTeacher(teacher);
         }
-        
+
         courseRepository.save(course);
         return courseMapper.toDto(course);
     }
@@ -94,7 +94,7 @@ public class CourseServiceImpl implements CourseService {
     @Caching(evict = {
             @CacheEvict(value = "course:list:all", allEntries = true),
             @CacheEvict(value = "course:list:public", allEntries = true),
-            @CacheEvict(value = "courses_teacher", key = "#userDetail.user.userId")
+            @CacheEvict(value = "course:list:teacher", allEntries = true)
     })
     public CourseDtoRes updateCourse(Long courseId, UpdateCourseDtoReq dto, CustomUserDetail userDetail) {
         Course course = courseRepository.findByCourseId(courseId);
@@ -118,12 +118,12 @@ public class CourseServiceImpl implements CourseService {
         if (dto.getTeacherId() != null) {
             User teacher = userRepository.findById(dto.getTeacherId())
                     .orElseThrow(() -> new NotFoundException("Teacher not found with id: " + dto.getTeacherId()));
-            
+
             // Kiểm tra user có phải là TEACHER không
             if (teacher.getRole() != UserRole.TEACHER) {
                 throw new IllegalArgumentException("User with id " + dto.getTeacherId() + " is not a teacher");
             }
-            
+
             course.setTeacher(teacher);
         }
 
@@ -153,7 +153,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Cacheable(
-            value = "course:list:teacher:{teacherId}",
+            value = "course:list:teacher",
             key = "#userDetail.user.userId"
     )
     public MyCoursesDtoRes getMyCourses(CustomUserDetail userDetail) {
