@@ -110,6 +110,9 @@ public class CourseServiceImpl implements CourseService {
         if (dto.getDescription() != null) {
             course.setDescription(dto.getDescription());
         }
+        if (dto.getImageUrl() != null) {
+            course.setImageUrl(dto.getImageUrl());
+        }
         if (dto.getIsPublic() != null) {
             course.setIsPublic(dto.getIsPublic());
         }

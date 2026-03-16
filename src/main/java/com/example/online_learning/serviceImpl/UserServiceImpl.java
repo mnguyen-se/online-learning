@@ -13,9 +13,15 @@ import com.example.online_learning.service.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import com.example.online_learning.dto.response.NewStudentStatsDtoRes;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -131,4 +137,39 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }
+
+    @Override
+    public List<NewStudentStatsDtoRes> getNewStudentStats(int days) {
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(days - 1); // bao gồm luôn ngày hiện tại
+
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+
+        // findByRoleAndCreatedAtBetween
+        List<User> students = userRepository.findByRoleAndCreatedAtBetween(UserRole.STUDENT, startDateTime, endDateTime);
+
+        // Group by Date -> Count
+        Map<LocalDate, Long> countByDate = students.stream()
+                .filter(u -> u.getCreatedAt() != null)
+                .collect(Collectors.groupingBy(
+                        u -> u.getCreatedAt().toLocalDate(),
+                        Collectors.counting()
+                ));
+
+        List<NewStudentStatsDtoRes> result = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM");
+
+        for (int i = 0; i < days; i++) {
+            LocalDate currentDate = startDate.plusDays(i);
+            Long count = countByDate.getOrDefault(currentDate, 0L);
+            result.add(NewStudentStatsDtoRes.builder()
+                    .date(currentDate.format(formatter))
+                    .count(count.intValue())
+                    .build());
+        }
+
+        return result;
+    }
 }
+

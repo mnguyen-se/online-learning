@@ -28,6 +28,7 @@ public class CourseMapper {
         Course course = new Course();
         course.setTitle(dto.getTitle());
         course.setDescription(dto.getDescription());
+        course.setImageUrl(dto.getImageUrl());
         course.setIsPublic(false);
         return course;
     }
@@ -37,6 +38,7 @@ public class CourseMapper {
         dto.setCourseId(course.getCourseId());
         dto.setTitle(course.getTitle());
         dto.setDescription(course.getDescription());
+        dto.setImageUrl(course.getImageUrl());
         dto.setCreatedAt(course.getCreatedAt());
         dto.setPublic(course.getIsPublic());
         dto.setCreatedById(course.getCreatedBy().getUserId());

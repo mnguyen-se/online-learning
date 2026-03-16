@@ -111,4 +111,19 @@ public class UserController {
         userService.deleteUser(userId);
         return "User deleted successfully";
     }
+
+    @Operation(
+            summary = "Thống kê số lượng học viên mới",
+            description = "Lấy số lượng học viên mới đăng ký từng ngày trong khoảng thời gian chỉ định (mặc định 7 ngày gần nhất)"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lấy thống kê thành công")
+    })
+    @GetMapping("/stats/new-students")
+    public List<com.example.online_learning.dto.response.NewStudentStatsDtoRes> getNewStudentStats(
+            @RequestParam(defaultValue = "7") int days
+    ) {
+        return userService.getNewStudentStats(days);
+    }
 }
+

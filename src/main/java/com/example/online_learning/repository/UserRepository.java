@@ -11,4 +11,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUserName(String username);
     Optional<User> findByEmail(String email);
     List<User> findByRole(UserRole role);
+    List<User> findByRoleAndCreatedAtBetween(UserRole role, java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
 }
