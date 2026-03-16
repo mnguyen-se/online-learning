@@ -66,7 +66,7 @@ public class CourseServiceImpl implements CourseService {
     @Caching(evict = {
             @CacheEvict(value = "course:list:all", allEntries = true),
             @CacheEvict(value = "course:list:public", allEntries = true),
-            @CacheEvict(value = "courses_teacher", key = "#userDetail.user.userId")
+            @CacheEvict(value = "course:list:teacher", allEntries = true)
     })
     public CourseDtoRes createCourse(CourseDtoReq dto, CustomUserDetail userDetail) {
         Course course = courseMapper.toEntity(dto);
@@ -94,7 +94,7 @@ public class CourseServiceImpl implements CourseService {
     @Caching(evict = {
             @CacheEvict(value = "course:list:all", allEntries = true),
             @CacheEvict(value = "course:list:public", allEntries = true),
-            @CacheEvict(value = "courses_teacher", key = "#userDetail.user.userId")
+            @CacheEvict(value = "course:list:teacher", allEntries = true)
     })
     public CourseDtoRes updateCourse(Long courseId, UpdateCourseDtoReq dto, CustomUserDetail userDetail) {
         Course course = courseRepository.findByCourseId(courseId);
@@ -153,7 +153,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Cacheable(
-            value = "course:list:teacher:{teacherId}",
+            value = "course:list:teacher",
             key = "#userDetail.user.userId"
     )
     public MyCoursesDtoRes getMyCourses(CustomUserDetail userDetail) {
