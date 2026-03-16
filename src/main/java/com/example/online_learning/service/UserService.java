@@ -14,4 +14,5 @@ public interface UserService {
     UserDtoRes updateUser(Long userId, UpdateUserDtoReq request);
     void deleteUser(Long userId);
     void changePassword(Long userId, ChangePasswordDtoReq request);
+    List<com.example.online_learning.dto.response.NewStudentStatsDtoRes> getNewStudentStats(int days);
 }

@@ -50,10 +50,10 @@ public class CourseServiceImpl implements CourseService {
     private final AssignmentSubmissionRepository assignmentSubmissionRepository;
 
     public CourseServiceImpl(CourseRepository courseRepository, CourseMapper courseMapper,
-                            UserRepository userRepository, EnrollmentRepository enrollmentRepository,
-                            LearningProcessRepository learningProcessRepository,
-                            AssignmentRepository assignmentRepository,
-                            AssignmentSubmissionRepository assignmentSubmissionRepository) {
+                             UserRepository userRepository, EnrollmentRepository enrollmentRepository,
+                             LearningProcessRepository learningProcessRepository,
+                             AssignmentRepository assignmentRepository,
+                             AssignmentSubmissionRepository assignmentSubmissionRepository) {
         this.courseRepository = courseRepository;
         this.courseMapper = courseMapper;
         this.userRepository = userRepository;
@@ -72,20 +72,20 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseMapper.toEntity(dto);
         course.setCreatedBy(userDetail.getUser());
         course.setIsPublic(false);
-        
+
         // Xử lý teacherId nếu được cung cấp
         if (dto.getTeacherId() != null) {
             User teacher = userRepository.findById(dto.getTeacherId())
                     .orElseThrow(() -> new NotFoundException("Teacher not found with id: " + dto.getTeacherId()));
-            
+
             // Kiểm tra user có phải là TEACHER không
             if (teacher.getRole() != UserRole.TEACHER) {
                 throw new IllegalArgumentException("User with id " + dto.getTeacherId() + " is not a teacher");
             }
-            
+
             course.setTeacher(teacher);
         }
-        
+
         courseRepository.save(course);
         return courseMapper.toDto(course);
     }
@@ -110,6 +110,9 @@ public class CourseServiceImpl implements CourseService {
         if (dto.getDescription() != null) {
             course.setDescription(dto.getDescription());
         }
+        if (dto.getImageUrl() != null) {
+            course.setImageUrl(dto.getImageUrl());
+        }
         if (dto.getIsPublic() != null) {
             course.setIsPublic(dto.getIsPublic());
         }
@@ -118,12 +121,12 @@ public class CourseServiceImpl implements CourseService {
         if (dto.getTeacherId() != null) {
             User teacher = userRepository.findById(dto.getTeacherId())
                     .orElseThrow(() -> new NotFoundException("Teacher not found with id: " + dto.getTeacherId()));
-            
+
             // Kiểm tra user có phải là TEACHER không
             if (teacher.getRole() != UserRole.TEACHER) {
                 throw new IllegalArgumentException("User with id " + dto.getTeacherId() + " is not a teacher");
             }
-            
+
             course.setTeacher(teacher);
         }
 

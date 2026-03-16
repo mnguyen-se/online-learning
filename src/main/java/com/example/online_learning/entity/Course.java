@@ -42,6 +42,9 @@ public class Course {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @Column(columnDefinition = "TEXT")
+    private String imageUrl;
+
     private boolean isPublic;
 
     public Boolean getIsPublic() { return isPublic; }

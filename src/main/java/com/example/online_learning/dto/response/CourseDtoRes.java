@@ -25,6 +25,8 @@ public class CourseDtoRes {
 
     private Long createdById;
 
+    private String imageUrl;
+
     private Long teacherId;
 
     private LocalDateTime createdAt;
